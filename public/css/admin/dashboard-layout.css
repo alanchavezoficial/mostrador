@@ -1,0 +1,92 @@
+main.dashboard-layout {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  min-height: 80vh;
+  margin: 0;
+  box-sizing: border-box;
+  background-color: var(--color_fondo);
+  color: var(--color_texto);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+}
+
+aside.menu {
+  width: 18%;
+  background-color: var(--color_header);
+  color: var(--color_texto);
+  border-right: 1px solid rgba(0,0,0,0.06);
+}
+
+section.content-area {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.25rem;
+  background-color: var(--color_fondo);
+  color: var(--color_texto);
+}
+
+.dashboard-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.card {
+  background: var(--color_card, #ffffff);
+  border-radius: 10px;
+  padding: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  min-height: 64px;
+}
+.card h2 { margin: 0 0 6px 0; font-size: 1rem; }
+.card p { font-size: 1.6rem; margin: 0; font-weight: 600; }
+
+.analytics-controls { display:flex; gap:0.5rem; flex-wrap:wrap; align-items:center; margin-bottom: 0.75rem; }
+.analytics-controls label { font-size: .9rem; display:flex; gap:0.5rem; align-items:center; }
+.analytics-controls button { padding: 8px 10px; border-radius: 6px; border: none; background: var(--color_primary); color: #fff; cursor: pointer; }
+
+.dashboard-charts { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; }
+.chart-card { background: var(--color_card, #fff); padding: 0.75rem; border-radius: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+.chart-card h3 { margin: 0 0 8px 0; font-size: 1rem; }
+
+.table { width: 100%; border-collapse: collapse; }
+.table th, .table td { border-bottom: 1px solid rgba(0,0,0,0.06); padding: 8px 10px; text-align: left; }
+.table tbody tr:hover { background: rgba(0,0,0,0.02); }
+.table th:first-child, .table td:first-child { width: 140px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+/* Responsive table wrapper */
+.table-responsive { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.table { min-width: 900px; }
+
+/* Ellipsis cells for long text */
+.ellipsis { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.table td.metadata { max-width: 350px; }
+.table td.path { max-width: 320px; }
+.table td.referrer { max-width: 220px; }
+.table td.element { max-width: 220px; }
+.table td.session { max-width: 140px; }
+
+/* Allow copy on truncated cells via :hover show pointer and title shows full text */
+.table td[title] { cursor: help; }
+
+@media (max-width: 860px) {
+  .table { min-width: 700px; }
+  .ellipsis { max-width: 120px; }
+}
+
+/* Modal styles */
+.modal { position: fixed; left: 0; top: 0; right:0; bottom: 0; display:flex; align-items:center; justify-content:center; z-index: 9999; }
+.modal.hidden { display: none; }
+.modal-backdrop { position:absolute; left:0; top:0; right:0; bottom:0; background: rgba(0,0,0,0.45); }
+.modal-content { position: relative; background: var(--color_card, #fff); width: min(980px, 95%); max-height: 85vh; overflow-y: auto; border-radius: 10px; padding: 1rem; box-shadow: 0 6px 24px rgba(0,0,0,0.2); z-index: 2; }
+.modal-header { display:flex; align-items:center; justify-content:space-between; gap: 1rem; }
+.modal-close { background: transparent; border: none; font-size: 1.4rem; cursor: pointer; }
+.modal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.5rem; margin-bottom: 0.75rem; }
+.modal-metadata { background: #f8f9fb; padding: 0.8rem; border-radius: 6px; white-space: pre-wrap; overflow-x: auto; }
+.modal-footer { display:flex; gap: 0.5rem; justify-content:flex-end; margin-top: .75rem; }
+.modal .btn { padding: 8px 10px; border-radius:6px; border: none; background: var(--color_primary); color:white; cursor:pointer; }
+.modal .btn.btn-secondary { background: #eee; color: #333; }
+
+@media (max-width: 860px) {
+  main.dashboard-layout { width: 100%; margin-left: 0; }
+}

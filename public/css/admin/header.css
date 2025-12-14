@@ -1,0 +1,60 @@
+header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+}
+
+nav {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 30%;
+    height: 100%;
+}
+
+nav a {
+    margin: 0 0.2rem;
+    width: 30%;
+}
+
+nav a p {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+nav a,
+nav a p {
+    height: 100%;
+    width: 10dvw;
+}
+
+nav a:hover {
+    text-decoration: underline;
+    background-color: var(--color_boton);
+}
+
+@media screen and (max-width: 768px) {
+    header {
+        flex-direction: column;
+        align-items: center;
+        height: auto;
+    }
+
+    nav {
+        margin-top: 1rem;
+        width: 100%;
+        justify-content: space-evenly;
+    }
+
+    nav a {
+        margin: 10px 0;
+        width: 30%;
+        display: flex;
+        justify-content: center;
+        align-self: center;
+    }
+}

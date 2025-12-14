@@ -1,0 +1,165 @@
+.admin-menu {
+  width: 240px;
+  background-color: var(--color_header);
+  border-right: 1px solid var(--color_acento);
+  padding: 1em;
+  font-family: sans-serif;
+}
+
+.admin-menu ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.admin-menu .menu-item {
+  margin-bottom: 0.5em;
+}
+
+.admin-menu .toggle {
+  display: block;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 0.5em;
+  background-color: var(--color_fondo);
+  border-radius: 4px;
+  transition: background 0.2s;
+  border: none;
+  width: 100%;
+  text-align: left;
+  position: relative;
+  color: var(--color_texto);
+}
+
+.admin-menu .icon { display: inline-flex; align-items: center; justify-content: center; width: 22px; margin-right: 0.6rem; vertical-align: middle; }
+.admin-menu .menu-label { vertical-align: middle; }
+
+/* Tooltip for collapsed state */
+.admin-menu.collapsed .menu-label { display: none; }
+.admin-menu.collapsed .toggle[data-tooltip]:hover::after,
+.admin-menu.collapsed .toggle[data-tooltip]:focus::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  white-space: nowrap;
+  background: var(--color_header);
+  color: var(--color_texto);
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  margin-left: 0.6rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+  z-index: 1100;
+}
+
+/* When collapsed show icons slightly larger */
+.admin-menu.collapsed .icon svg { transform: scale(1.05); }
+
+.admin-menu .toggle:hover {
+  background-color: var(--color_acento);
+}
+
+.admin-menu .submenu {
+  max-height: 0;
+  overflow: hidden;
+  padding-left: 1em;
+  padding-right: 1em;
+  background-color: var(--color_boton);
+  border-radius: 0 0 4px 4px;
+  transition: max-height 220ms ease, padding 220ms ease;
+}
+
+.admin-menu .submenu.open {
+  max-height: 480px; /* large enough for content, smooth reveal */
+  padding-top: 0.5em;
+  padding-bottom: 0.5em;
+}
+
+.admin-menu .submenu a {
+  display: block;
+  padding: 0.25em 0;
+  color: var(--color_texto);
+  text-decoration: none;
+}
+
+.admin-menu .submenu a:hover {
+  color: color-mix(in hsl, var(--color_primario), hsl(0, 0%, 100%) 30%);
+}
+
+/* Toggle chevron */
+.admin-menu .toggle::after {
+  content: '\25B6';
+  display: inline-block;
+  margin-left: 0.6em;
+  transition: transform 180ms ease;
+  font-size: 0.7rem;
+  color: var(--color_texto);
+  transform-origin: center;
+}
+.admin-menu .toggle[aria-expanded="true"]::after {
+  transform: rotate(90deg);
+}
+
+/* Focus and active states */
+.admin-menu .toggle:focus {
+  outline: 2px solid var(--color_acento);
+  outline-offset: 2px;
+}
+.admin-menu a:focus {
+  outline: 2px dashed var(--color_acento);
+  outline-offset: 2px;
+}
+.admin-menu .menu-item.active > .toggle,
+.admin-menu .menu-item.active > a {
+  background-color: color-mix(in hsl, var(--color_acento), hsl(0 0% 100% / 10%));
+}
+
+/* Menu header / collapse button */
+.menu-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0.25em 0.35em;
+}
+.menu-collapse {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  color: var(--color_texto);
+  padding: 0.25rem 0.5rem;
+}
+.menu-collapse:hover { color: var(--color_primario); }
+
+/* Collapsed state styles (desktop) */
+.admin-menu.collapsed { width: 80px; }
+.admin-menu.collapsed .submenu { display: none; }
+.admin-menu.collapsed .toggle { padding-left: 0.5em; }
+
+/* Desktop sticky sidebar to keep options visible while scrolling */
+@media (min-width: 861px) {
+  aside.menu.admin-menu {
+    position: sticky;
+    top: var(--admin-header-height, 70px); /* align below header so it doesn't get covered when scrolling */
+    height: calc(100vh - var(--admin-header-height, 70px));
+    max-height: calc(100vh - var(--admin-header-height, 70px));
+    overflow-y: auto;
+    box-sizing: border-box;
+  }
+}
+
+
+/* Responsive: toggle button and off-canvas menu */
+.menu-toggle { display: none; border: none; background: transparent; font-size: 1.4rem; cursor: pointer; padding: 8px 10px; }
+.menu-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1090; }
+
+@media (max-width: 860px) {
+  .menu-toggle { display: inline-block; }
+  .admin-menu { position: fixed; top: 0; left: 0; bottom: 0; height: 100vh; box-sizing: border-box; transform: translateX(-110%); width: 100vw; max-width: 100vw; z-index: 1100; transition: transform 260ms ease; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.12); }
+  aside.menu.admin-menu { width: 100vw; max-width: 100vw; }
+  .admin-menu.open { transform: translateX(0); }
+  .menu-backdrop.show { display: block; }
+  /* smaller paddings for mobile view */
+  .admin-menu { padding: 0.5em; }
+}

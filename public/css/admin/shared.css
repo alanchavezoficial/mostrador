@@ -1,0 +1,36 @@
+.alert.success {
+  background: var(--color_fondo);
+  border: 1px solid var(--color_acento);
+  color: var(--color_texto);
+  padding: 0.75em;
+  margin-bottom: 1em;
+  border-radius: 4px;
+}
+
+.drop-zone {
+  padding: 20px;
+  border: 2px dashed var(--color_acento);
+  text-align: center;
+  cursor: pointer;
+  border-radius: 6px;
+  background: var(--color_fondo);
+}
+
+#preview {
+  max-width: 100%;
+  margin-top: 10px;
+  display: block;
+  border-radius: 4px;
+}
+
+.main {
+  width: 100%;
+  overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+  .admin-table th,
+  .admin-table td {
+    font-size: 0.9em;
+  }
+}
