@@ -69,6 +69,13 @@ $requiredScripts = ['admin/ajax-edit.js', 'admin/ajax-form.js', 'admin/ajax-relo
                  title="Editar pedido">
                 ✏️
               </a>
+              <a href="<?= BASE_URL ?>admin/pedidos/factura?id=<?= $o['id'] ?>"
+                 class="btn-edit"
+                 target="_blank"
+                 rel="noopener"
+                 title="Imprimir/Descargar factura">
+                🖨️
+              </a>
             </td>
           </tr>
         <?php endforeach; ?>

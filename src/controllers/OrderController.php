@@ -230,9 +230,11 @@ class OrderController
         $order = $this->fetchOrder($orderId, $userId);
         if (!$order) return;
 
-        header('Content-Type: text/html');
-        header('Content-Disposition: attachment; filename="factura-' . $order['order_number'] . '.html"');
-        View::render('orders/invoice', ['order' => $order], 'public');
+        header('Content-Type: text/html; charset=UTF-8');
+        // Renderiza directamente la plantilla de factura como HTML imprimible (igual que admin)
+        $orderLocal = $order;
+        $order = $orderLocal;
+        require __DIR__ . '/../views/orders/invoice.php';
     }
 
     public function track(): void
@@ -256,9 +258,49 @@ class OrderController
         echo json_encode($order);
     }
 
+    private function fetchOrderById(int $orderId): ?array
+    {
+        $stmt = $this->conn->prepare("SELECT o.*, u.nombre as username FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = ?");
+        $stmt->bind_param('i', $orderId);
+        $stmt->execute();
+        $order = $stmt->get_result()->fetch_assoc();
+        if (!$order) {
+            http_response_code(404);
+            echo 'Pedido no encontrado';
+            return null;
+        }
+        $itemsStmt = $this->conn->prepare("SELECT * FROM order_items WHERE order_id = ?");
+        $itemsStmt->bind_param('i', $orderId);
+        $itemsStmt->execute();
+        $order['items'] = $itemsStmt->get_result()->fetch_all(MYSQLI_ASSOC);
+        return $order;
+    }
+
+    // ============ ADMIN: Factura/Impresión ============
+
+    public function adminInvoice(): void
+    {
+        require_once __DIR__ . '/../core/auth.php';
+        $orderId = isset($_GET['id']) ? (int)$_GET['id'] : 0;
+        if ($orderId <= 0) {
+            http_response_code(400);
+            echo 'ID inválido';
+            return;
+        }
+
+        $order = $this->fetchOrderById($orderId);
+        if (!$order) return;
+
+        header('Content-Type: text/html; charset=UTF-8');
+        // Renderiza directamente la plantilla de factura sin envolver en layout
+        $orderLocal = $order; // evita conflicto al usar extract en la vista
+        $order = $orderLocal;
+        require __DIR__ . '/../views/orders/invoice.php';
+    }
+
     private function fetchOrder(int $orderId, int $userId): ?array
     {
-        $stmt = $this->conn->prepare("SELECT * FROM orders WHERE id = ? AND user_id = ?");
+        $stmt = $this->conn->prepare("SELECT o.*, u.nombre as username FROM orders o LEFT JOIN users u ON o.user_id = u.id WHERE o.id = ? AND o.user_id = ?");
         $stmt->bind_param('ii', $orderId, $userId);
         $stmt->execute();
         $order = $stmt->get_result()->fetch_assoc();

@@ -2,7 +2,7 @@
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/View.php';
-require_once __DIR__ . '/../core/auth.php'; 
+// auth.php no se carga globalmente para permitir vistas públicas de producto
 
 class ProductController
 {
@@ -174,7 +174,7 @@ class ProductController
         exit;
     }
 
-    public function view(int $id): void
+    public function view(string $id): void
     {
         try {
             $stmt = $this->conn->prepare("
@@ -183,7 +183,7 @@ class ProductController
                 LEFT JOIN categories c ON p.categoria_id = c.id
                 WHERE p.id = ?
             ");
-            $stmt->bind_param("i", $id);
+            $stmt->bind_param("s", $id);
             $stmt->execute();
             $producto = $stmt->get_result()->fetch_assoc();
 
@@ -193,18 +193,18 @@ class ProductController
 
             // Galería de imágenes adicionales
             $galleryStmt = $this->conn->prepare("SELECT image_path, alt_text FROM product_images WHERE product_id = ? ORDER BY sort_order ASC, id ASC");
-            $galleryStmt->bind_param('i', $id);
+            $galleryStmt->bind_param('s', $id);
             $galleryStmt->execute();
             $gallery = $galleryStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
             // Reviews visibles
             $revStmt = $this->conn->prepare("SELECT rating, title, content, created_at, user_id FROM reviews WHERE product_id = ? AND is_visible = 1 ORDER BY created_at DESC LIMIT 20");
-            $revStmt->bind_param('i', $id);
+            $revStmt->bind_param('s', $id);
             $revStmt->execute();
             $reviews = $revStmt->get_result()->fetch_all(MYSQLI_ASSOC);
 
             $avgStmt = $this->conn->prepare("SELECT AVG(rating) as avg_rating, COUNT(*) as total_reviews FROM reviews WHERE product_id = ? AND is_visible = 1");
-            $avgStmt->bind_param('i', $id);
+            $avgStmt->bind_param('s', $id);
             $avgStmt->execute();
             $avgData = $avgStmt->get_result()->fetch_assoc() ?: ['avg_rating' => null, 'total_reviews' => 0];
 
@@ -259,9 +259,19 @@ class ProductController
 
     public function productEdit(): void
     {
-        require_once __DIR__ . '/../core/auth.php'; 
+        require_once __DIR__ . '/../core/auth.php';
+        
+        // Prevenir output antes de JSON
+        ob_start();
+        
         $id = $_POST['id'] ?? null;
         if (!$id) {
+            ob_end_clean();
+            if (($_GET['ajax'] ?? '') === '1') {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'ID inválido']);
+                exit;
+            }
             http_response_code(400);
             die('ID inválido.');
         }
@@ -294,6 +304,12 @@ class ProductController
             $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
             $mimeType = mime_content_type($tmpPath);
             if (!in_array($mimeType, $allowedMimes)) {
+                ob_end_clean();
+                if (($_GET['ajax'] ?? '') === '1') {
+                    header('Content-Type: application/json');
+                    echo json_encode(['error' => 'Tipo de archivo no válido. Solo se permiten imágenes.']);
+                    exit;
+                }
                 http_response_code(400);
                 die("Tipo de archivo no válido. Solo se permiten imágenes.");
             }
@@ -375,6 +391,9 @@ class ProductController
 
         // Respuesta AJAX
         if (($_GET['ajax'] ?? '') === '1') {
+            // Limpiar cualquier output previo
+            ob_end_clean();
+            
             // obtener nuevo HTML de la tabla
             $result = $this->conn->query("
     SELECT products.*, categories.nombre AS categoria_nombre

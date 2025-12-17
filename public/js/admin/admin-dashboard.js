@@ -34,22 +34,83 @@
     return {
       from: document.getElementById('filter-from')?.value || '',
       to: document.getElementById('filter-to')?.value || '',
-      group: document.getElementById('filter-group')?.value || 'day'
+      group: document.getElementById('filter-group')?.value || 'day',
+      event_type: document.getElementById('filter-type')?.value || ''
     };
   };
 
-  let pageviewsChart = null, avgTimeChart = null, clicksChart = null, referrersChart = null, routesChart = null, deviceChart = null, countryChart = null;
+  // Pagination state and helpers
+  let currentPage = 1;
+  const perPage = 25;
+  const $pager = document.getElementById('events-pagination');
+  const renderPager = (total, page, limit) => {
+    if (!$pager) return;
+    const pages = Math.max(1, Math.ceil((Number(total) || 0) / (Number(limit) || perPage)));
+    const p = Math.min(Math.max(1, page || 1), pages);
+    $pager.innerHTML = '';
+    const btn = (label, disabled, goTo) => {
+      const b = document.createElement('button');
+      b.textContent = label;
+      b.disabled = !!disabled;
+      b.style.padding = '6px 10px';
+      b.style.border = '1px solid #ddd';
+      b.style.background = disabled ? '#f5f5f5' : '#fff';
+      b.style.borderRadius = '6px';
+      b.addEventListener('click', () => { if (!disabled && typeof goTo === 'function') goTo(); });
+      return b;
+    };
+    const info = document.createElement('span');
+    info.textContent = `Página ${p} de ${pages}`;
+    info.style.margin = '0 8px';
+    $pager.appendChild(btn('« Anterior', p <= 1, () => { currentPage = p - 1; load(getFilters()); }));
+    $pager.appendChild(info);
+    $pager.appendChild(btn('Siguiente »', p >= pages, () => { currentPage = p + 1; load(getFilters()); }));
+  };
+
+  // Helpers for table rendering
+  const typeChip = (t) => {
+    const txt = (t || '').toString();
+    return `<span class="chip chip-${txt}">${txt}</span>`;
+  };
+  const metaSummary = (ev) => {
+    try {
+      const md = ev?.metadata || {};
+      switch (ev?.event_type) {
+        case 'click': {
+          if (md.text) return `"${String(md.text).slice(0, 40)}"`;
+          if (typeof md.x === 'number' && typeof md.y === 'number') return `x:${md.x}, y:${md.y}`;
+          return 'click';
+        }
+        case 'time_on_page':
+        case 'heartbeat': {
+          const s = (md.seconds !== undefined) ? Number(md.seconds) : 0;
+          return `${s}s`;
+        }
+        default: {
+          const keys = Object.keys(md);
+          return keys.length ? keys.slice(0, 3).join(', ') : '';
+        }
+      }
+    } catch (_) { return ''; }
+  };
+
+  let pageviewsChart = null, avgTimeChart = null, clicksChart = null, referrersChart = null, routesChart = null, deviceChart = null, countryChart = null, buyersChart = null, wishlistChart = null;
   const destroyCharts = () => {
-    [pageviewsChart, avgTimeChart, clicksChart, referrersChart, routesChart, deviceChart, countryChart].forEach(c => { if (c) { c.destroy && c.destroy(); } });
-    pageviewsChart = avgTimeChart = clicksChart = referrersChart = routesChart = deviceChart = countryChart = null;
+    [pageviewsChart, avgTimeChart, clicksChart, referrersChart, routesChart, deviceChart, countryChart, buyersChart, wishlistChart].forEach(c => { if (c) { c.destroy && c.destroy(); } });
+    pageviewsChart = avgTimeChart = clicksChart = referrersChart = routesChart = deviceChart = countryChart = buyersChart = wishlistChart = null;
   };
 
   const load = async (filters = {}) => {
     try {
       // load recent events
       if ($tbody) {
-        const res = await fetch(buildUrl('admin/dashboard/events', Object.assign({ limit: 200 }, filters)));
-        const list = await res.json();
+        const res = await fetch(buildUrl('admin/dashboard/events', Object.assign({ limit: perPage, page: currentPage }, filters)));
+        let payload = await res.json();
+        // Support both legacy array and new object format { items, total, page, limit }
+        const list = Array.isArray(payload) ? payload : (payload.items || []);
+        const total = Array.isArray(payload) ? list.length : (payload.total || list.length || 0);
+        const serverPage = Array.isArray(payload) ? 1 : (payload.page || 1);
+        const serverLimit = Array.isArray(payload) ? list.length : (payload.limit || perPage);
         $tbody.innerHTML = '';
         list.forEach(ev => {
           const tr = document.createElement('tr');
@@ -57,21 +118,20 @@
           const metadataText = JSON.stringify(ev.metadata || {});
           const pathEsc = escapeAttr(pathText);
           const metadataEsc = escapeAttr(metadataText);
-          tr.innerHTML = `<td class="country">${ev.country || (ev.metadata && ev.metadata.country_name) || (ev.metadata && ev.metadata.country) || ''}</td>
-            <td class="id">${ev.id}</td>
-            <td class="type">${ev.event_type}</td>
-            <td class="session">${ev.session_id||''}</td>
-            <td class="path ellipsis" title="${pathEsc}">${pathText}</td>
+            const countryText = ev.country || (ev.metadata && (ev.metadata.country || ev.metadata.country_name)) || '';
+            const flag = (typeof countryText === 'string' && countryText.length === 2) ? codeToFlag(countryText) : '';
+            tr.innerHTML = `<td class="country country-col">${flag ? (flag + ' ') : ''}${countryText}</td>
+              <td class="type">${typeChip(ev.event_type)}</td>
             <td class="element ellipsis" title="${ev.element||''}">${ev.element||''}</td>
             <td class="referrer ellipsis" title="${ev.referrer||''}">${ev.referrer||''}</td>
-            <td class="ip">${ev.ip||''}</td>
-            <td class="metadata ellipsis" title="${metadataEsc}">${metadataText}</td>
+              <td class="metadata ellipsis" title="${metadataEsc}">${escapeAttr(metaSummary(ev))}</td>
             <td class="fecha">${ev.created_at}</td>`;
             // attach event data to DOM row for quick modal opening without refetch
             tr._eventData = ev;
             tr.dataset.id = ev.id;
             $tbody.appendChild(tr);
         });
+        renderPager(total, serverPage, serverLimit);
       }
 
       // Fetch aggregated stats and render charts
@@ -107,6 +167,34 @@
           routesChart = new Chart(routesCanvas, { type: 'bar', data: { labels: data.top_routes.map(r=>r.path || '(sin ruta)'), datasets: [{ label: 'Visits', data: data.top_routes.map(r=>r.cnt), backgroundColor: 'rgba(100,149,237,0.8)'}]}, options:{indexAxis:'y'}});
         }
       } catch(e) { console.error('Failed to load stats', e); }
+
+      // Render buyers and wishlist charts if global data available
+      try {
+        const buyersData = (window.TOP_PRODUCT_BUYERS || []).slice(0, 10);
+        const wishlistData = (window.TOP_WISHLISTED || []).slice(0, 10);
+        const buyersEl = document.getElementById('buyersChart');
+        const wishlistEl = document.getElementById('wishlistChart');
+        if (buyersEl && buyersData.length) {
+          buyersChart = new Chart(buyersEl, {
+            type: 'bar',
+            data: {
+              labels: buyersData.map(b => b.name || ('ID ' + (b.product_id || ''))),
+              datasets: [{ label: 'Compradores únicos (pagados)', data: buyersData.map(b => Number(b.cnt) || 0), backgroundColor: 'rgba(46, 204, 113, 0.85)' }]
+            },
+            options: { indexAxis: 'y' }
+          });
+        }
+        if (wishlistEl && wishlistData.length) {
+          wishlistChart = new Chart(wishlistEl, {
+            type: 'bar',
+            data: {
+              labels: wishlistData.map(w => w.name || ('ID ' + (w.product_id || ''))),
+              datasets: [{ label: 'Guardados (usuarios únicos)', data: wishlistData.map(w => Number(w.cnt) || 0), backgroundColor: 'rgba(255, 159, 64, 0.85)' }]
+            },
+            options: { indexAxis: 'y' }
+          });
+        }
+      } catch (err) { console.warn('Failed to render buyers/wishlist charts', err); }
     } catch (e) {
       console.error('Failed to load analytics events', e);
     }
@@ -132,6 +220,7 @@
 
   // Hook up filters
   document.getElementById('filter-apply')?.addEventListener('click', () => {
+    currentPage = 1;
     const filters = getFilters();
     load(filters);
   });
@@ -148,6 +237,12 @@
 
   // initial load
   load(getFilters());
+
+  // Event type filter change triggers reload
+  document.getElementById('filter-type')?.addEventListener('change', () => {
+    currentPage = 1;
+    load(getFilters());
+  });
 
   // Modal handlers
   const modal = document.getElementById('event-modal');
@@ -166,7 +261,7 @@
     setText('ev-path', ev.path || '');
     setText('ev-element', ev.element || '');
     setText('ev-referrer', ev.referrer || '');
-    setText('ev-ip', ev.ip || '');
+      // IP intentionally omitted from modal
     setText('ev-date', ev.created_at || '');
     setPre('ev-metadata', JSON.stringify(ev.metadata || {}, null, 2));
     modal.classList.remove('hidden');

@@ -10,52 +10,62 @@ $requiredScripts = [
       action="<?= BASE_URL ?>admin/configuraciones/editar"
       data-ajax-form
       data-ajax
-      class="form-block">
+      class="form-block config-form">
   <?= csrf_field(); ?>
 
-  <h2 class="form-title">✏️ Editar configuración</h2>
+  <div class="form-header">
+    <div>
+      <p class="eyebrow">Configuración #<?= (int)$config['id'] ?></p>
+      <h2 class="form-title">✏️ Editar configuración</h2>
+      <p class="muted">Actualiza el valor y el tipo. Usa JSON para estructuras complejas.</p>
+    </div>
+    <div class="badge-pill">Tipo actual: <?= htmlspecialchars(ucfirst($config['tipo'])) ?></div>
+  </div>
+
   <input type="hidden" name="id" value="<?= $config['id'] ?>">
 
   <div class="form-group">
-    <label for="settings-clave">Clave</label>
+    <label for="settings-clave" class="required">Clave</label>
     <input 
-    type="text" 
-    id="settings-clave" 
-    name="clave"
-    value="<?= htmlspecialchars($config['clave']) ?>"
-    class="form-input" 
-    required>
+      type="text" 
+      id="settings-clave" 
+      name="clave"
+      value="<?= htmlspecialchars($config['clave']) ?>"
+      class="form-input"
+      required>
   </div>
 
-<div class="form-group">
-  <label for="register-valor">Valor</label>
-  <?php if ($config['tipo'] === 'texto' || $config['tipo'] === 'json'): ?>
-    <textarea 
-      id="register-valor"
-      name="valor"
-      class="form-input"
-      rows="4"
-      required><?= htmlspecialchars($config['valor']) ?></textarea>
-  <?php elseif ($config['tipo'] === 'booleano'): ?>
-    <input
-      type="checkbox"
-      id="register-valor"
-      name="valor"
-      class="form-input"
-      <?= $config['valor'] ? 'checked' : '' ?>>
-  <?php else: ?>
-    <input
-      type="<?= htmlspecialchars($config['tipo'] === 'enlace' ? 'url' : $config['tipo']) ?>"
-      id="register-valor"
-      name="valor"
-      class="form-input"
-      value="<?= htmlspecialchars($config['valor']) ?>"
-      required>
-  <?php endif; ?>
-</div>
+  <div class="form-group">
+    <label for="register-valor" class="required">Valor</label>
+    <?php if ($config['tipo'] === 'texto' || $config['tipo'] === 'json'): ?>
+      <textarea 
+        id="register-valor"
+        name="valor"
+        class="form-input"
+        rows="5"
+        required><?= htmlspecialchars($config['valor']) ?></textarea>
+    <?php elseif ($config['tipo'] === 'booleano'): ?>
+      <label class="checkbox-row">
+        <input
+          type="checkbox"
+          id="register-valor"
+          name="valor"
+          <?= $config['valor'] ? 'checked' : '' ?>>
+        <span>Activo</span>
+      </label>
+    <?php else: ?>
+      <input
+        type="<?= htmlspecialchars($config['tipo'] === 'enlace' ? 'url' : $config['tipo']) ?>"
+        id="register-valor"
+        name="valor"
+        class="form-input"
+        value="<?= htmlspecialchars($config['valor']) ?>"
+        required>
+    <?php endif; ?>
+  </div>
 
   <div class="form-group">
-    <label for="register-tipo">Tipo</label>
+    <label for="register-tipo" class="required">Tipo</label>
     <select name="tipo" id="register-tipo" class="form-input" required>
       <?php
         $tipos = ['texto', 'color', 'enlace', 'booleano', 'email', 'numero', 'json'];
@@ -68,6 +78,7 @@ $requiredScripts = [
   </div>
 
   <div class="form-actions">
-    <button type="submit" class="btn-primary">💾 Guardar cambios</button>
+    <a class="btn btn-secondary" href="<?= BASE_URL ?>admin/configuraciones?view=table">Cancelar</a>
+    <button type="submit" class="btn btn-primary">💾 Guardar cambios</button>
   </div>
 </form>

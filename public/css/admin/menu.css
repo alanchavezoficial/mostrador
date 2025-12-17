@@ -1,9 +1,20 @@
+:root {
+  --admin-menu-bg: var(--color_header);
+  --admin-menu-card: color-mix(in hsl, var(--color_header), hsl(0 0% 100% / 6%));
+  --admin-menu-border: rgba(0, 0, 0, 0.08);
+  --admin-menu-hover: color-mix(in hsl, var(--color_header), hsl(0 0% 100% / 14%));
+  --admin-menu-active: color-mix(in hsl, var(--color_boton), hsl(0 0% 100% / 18%));
+  --admin-menu-text: var(--color_texto);
+}
+
 .admin-menu {
   width: 240px;
-  background-color: var(--color_header);
-  border-right: 1px solid var(--color_acento);
-  padding: 1em;
+  background-color: var(--admin-menu-bg);
+  border-right: 1px solid var(--admin-menu-border);
+  padding: 0.85em 0.9em;
   font-family: sans-serif;
+  box-shadow: 6px 0 18px rgba(0, 0, 0, 0.06);
+  box-sizing: border-box;
 }
 
 .admin-menu ul {
@@ -12,29 +23,29 @@
   margin: 0;
 }
 
-.admin-menu .menu-item {
-  margin-bottom: 0.5em;
-}
+.admin-menu .menu-item { margin-bottom: 0.45em; }
 
 .admin-menu .toggle {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
   cursor: pointer;
-  font-weight: bold;
-  padding: 0.5em;
-  background-color: var(--color_fondo);
-  border-radius: 4px;
-  transition: background 0.2s;
-  border: none;
+  font-weight: 600;
+  padding: 0.7em 0.65em;
+  background-color: var(--admin-menu-card);
+  border-radius: 12px;
+  transition: background 0.18s ease, color 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  border: 1px solid transparent;
   width: 100%;
   text-align: left;
   position: relative;
-  color: var(--color_texto);
+  color: var(--admin-menu-text);
+  text-decoration: none;
+  line-height: 1.2;
 }
+.admin-menu .icon { display: inline-flex; align-items: center; justify-content: center; width: 22px; flex-shrink: 0; }
+.admin-menu .menu-label { flex: 1; }
 
-.admin-menu .icon { display: inline-flex; align-items: center; justify-content: center; width: 22px; margin-right: 0.6rem; vertical-align: middle; }
-.admin-menu .menu-label { vertical-align: middle; }
-
-/* Tooltip for collapsed state */
 .admin-menu.collapsed .menu-label { display: none; }
 .admin-menu.collapsed .toggle[data-tooltip]:hover::after,
 .admin-menu.collapsed .toggle[data-tooltip]:focus::after {
@@ -53,113 +64,102 @@
   z-index: 1100;
 }
 
-/* When collapsed show icons slightly larger */
 .admin-menu.collapsed .icon svg { transform: scale(1.05); }
 
 .admin-menu .toggle:hover {
-  background-color: var(--color_acento);
+  background-color: var(--admin-menu-hover);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+  border-color: var(--admin-menu-border);
 }
 
 .admin-menu .submenu {
   max-height: 0;
   overflow: hidden;
-  padding-left: 1em;
-  padding-right: 1em;
-  background-color: var(--color_boton);
-  border-radius: 0 0 4px 4px;
-  transition: max-height 220ms ease, padding 220ms ease;
+  padding: 0 1em;
+  background-color: color-mix(in hsl, var(--admin-menu-card), hsl(0 0% 100% / 8%));
+  border-radius: 0 0 12px 12px;
+  transition: max-height 220ms ease, padding 220ms ease, background 160ms ease;
 }
 
 .admin-menu .submenu.open {
-  max-height: 480px; /* large enough for content, smooth reveal */
-  padding-top: 0.5em;
-  padding-bottom: 0.5em;
+  max-height: 480px;
+  padding: 0.55em 1em 0.55em 1em;
 }
 
 .admin-menu .submenu a {
   display: block;
-  padding: 0.25em 0;
-  color: var(--color_texto);
+  padding: 0.35em 0;
+  color: var(--admin-menu-text);
   text-decoration: none;
 }
 
 .admin-menu .submenu a:hover {
-  color: color-mix(in hsl, var(--color_primario), hsl(0, 0%, 100%) 30%);
+  color: color-mix(in hsl, var(--color_primario), hsl(0 0% 100% / 15%));
 }
 
-/* Toggle chevron */
 .admin-menu .toggle::after {
-  content: '\25B6';
+  content: '\203A';
   display: inline-block;
-  margin-left: 0.6em;
+  margin-left: auto;
   transition: transform 180ms ease;
-  font-size: 0.7rem;
+  font-size: 0.82rem;
   color: var(--color_texto);
   transform-origin: center;
 }
-.admin-menu .toggle[aria-expanded="true"]::after {
-  transform: rotate(90deg);
+.admin-menu .toggle.no-chevron::after {
+  content: '';
+  display: inline-block;
+  width: 0.82rem;
+  height: 1px;
 }
+.admin-menu .toggle[aria-expanded="true"]::after { transform: rotate(90deg); }
 
-/* Focus and active states */
-.admin-menu .toggle:focus {
-  outline: 2px solid var(--color_acento);
-  outline-offset: 2px;
-}
+.admin-menu .toggle:focus,
 .admin-menu a:focus {
-  outline: 2px dashed var(--color_acento);
+  outline: 2px solid color-mix(in hsl, var(--color_primario), hsl(0 0% 100% / 20%));
   outline-offset: 2px;
 }
 .admin-menu .menu-item.active > .toggle,
 .admin-menu .menu-item.active > a {
-  background-color: color-mix(in hsl, var(--color_acento), hsl(0 0% 100% / 10%));
+  background-color: var(--admin-menu-active);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
 }
+.admin-menu .menu-item.active > .toggle::before,
+.admin-menu .menu-item.active > a::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--color_primario);
+}
+.admin-menu .menu-item.active > .toggle,
+.admin-menu .menu-item.active > a { padding-left: 0.9em; }
 
-/* Menu header / collapse button */
-.menu-header {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  padding: 0.25em 0.35em;
-}
-.menu-collapse {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  font-size: 1rem;
-  color: var(--color_texto);
-  padding: 0.25rem 0.5rem;
-}
-.menu-collapse:hover { color: var(--color_primario); }
-
-/* Collapsed state styles (desktop) */
 .admin-menu.collapsed { width: 80px; }
 .admin-menu.collapsed .submenu { display: none; }
 .admin-menu.collapsed .toggle { padding-left: 0.5em; }
 
-/* Desktop sticky sidebar to keep options visible while scrolling */
+/* Sin sticky: el scroll ahora lo gestiona el contenedor principal */
 @media (min-width: 861px) {
   aside.menu.admin-menu {
-    position: sticky;
-    top: var(--admin-header-height, 70px); /* align below header so it doesn't get covered when scrolling */
-    height: calc(100vh - var(--admin-header-height, 70px));
-    max-height: calc(100vh - var(--admin-header-height, 70px));
-    overflow-y: auto;
-    box-sizing: border-box;
+    position: static;
+    height: auto;
+    max-height: none;
+    overflow: visible;
   }
 }
 
-
-/* Responsive: toggle button and off-canvas menu */
 .menu-toggle { display: none; border: none; background: transparent; font-size: 1.4rem; cursor: pointer; padding: 8px 10px; }
 .menu-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 1090; }
 
 @media (max-width: 860px) {
-  .menu-toggle { display: inline-block; }
-  .admin-menu { position: fixed; top: 0; left: 0; bottom: 0; height: 100vh; box-sizing: border-box; transform: translateX(-110%); width: 100vw; max-width: 100vw; z-index: 1100; transition: transform 260ms ease; overflow-y: auto; box-shadow: 2px 0 10px rgba(0,0,0,0.12); }
+  .menu-toggle { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; border-radius: 12px; border: 1px solid var(--admin-menu-border); background: var(--admin-menu-card); color: var(--admin-menu-text); }
+  .admin-menu { position: fixed; top: 0; left: 0; bottom: 0; height: 100vh; box-sizing: border-box; transform: translateX(-110%); width: 100vw; max-width: 100vw; z-index: 1100; transition: transform 260ms ease, box-shadow 180ms ease; overflow-y: auto; box-shadow: 2px 0 16px rgba(0,0,0,0.16); }
   aside.menu.admin-menu { width: 100vw; max-width: 100vw; }
   .admin-menu.open { transform: translateX(0); }
-  .menu-backdrop.show { display: block; }
-  /* smaller paddings for mobile view */
+  .menu-backdrop.show { display: block; backdrop-filter: blur(2px); background: rgba(0,0,0,0.4); }
   .admin-menu { padding: 0.5em; }
 }

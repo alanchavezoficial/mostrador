@@ -25,18 +25,34 @@ document.body.addEventListener('submit', async e => {
 
     // 🧠 Si la respuesta es JSON con HTML, actualiza directamente
     if (contentType.includes('application/json')) {
-      const data = await res.json();
-      if (data.html) {
-        document.querySelector('.main').innerHTML = data.html;
-        form.reset();
-        if (window.showToast) {
-          showToast('✅ Guardado correctamente', 'success');
+      try {
+        const data = await res.json();
+        if (data.error) {
+          console.error('Error del servidor:', data.error);
+          if (window.showToast) {
+            showToast('❌ ' + data.error, 'error');
+          }
+          return;
         }
-        return;
-      } else {
-        console.error('Respuesta JSON sin HTML:', data);
+        if (data.html) {
+          document.querySelector('.main').innerHTML = data.html;
+          form.reset();
+          if (window.showToast) {
+            showToast('✅ Guardado correctamente', 'success');
+          }
+          return;
+        } else {
+          console.error('Respuesta JSON sin HTML:', data);
+          if (window.showToast) {
+            showToast('❌ Error al guardar', 'error');
+          }
+          return;
+        }
+      } catch (jsonError) {
+        const text = await res.text();
+        console.error('Error parseando JSON. Respuesta del servidor:', text);
         if (window.showToast) {
-          showToast('❌ Error al guardar', 'error');
+          showToast('❌ Error del servidor (respuesta inválida)', 'error');
         }
         return;
       }

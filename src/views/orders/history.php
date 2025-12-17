@@ -1,6 +1,5 @@
 <?php
 $page_css = $page_css ?? 'cart.css';
-include_once __DIR__ . '/../layouts/header.php';
 ?>
 <section class="cart-page">
   <h1>Mis pedidos</h1>
@@ -35,7 +34,7 @@ include_once __DIR__ . '/../layouts/header.php';
             <td data-label="Fecha"><?= htmlspecialchars($o['created_at']) ?></td>
             <td data-label="Acciones">
               <a class="btn-primary" href="<?= BASE_URL ?>orders/detail?id=<?= $o['id'] ?>">Ver</a>
-              <a class="btn-primary" href="<?= BASE_URL ?>orders/invoice?id=<?= $o['id'] ?>">Factura</a>
+              <a class="btn-primary" href="<?= BASE_URL ?>orders/invoice?id=<?= $o['id'] ?>" target="_blank" rel="noopener">Factura</a>
             </td>
           </tr>
         <?php endforeach; ?>
@@ -43,4 +42,3 @@ include_once __DIR__ . '/../layouts/header.php';
     </table>
   <?php endif; ?>
 </section>
-<?php include_once __DIR__ . '/../layouts/footer.php'; ?>

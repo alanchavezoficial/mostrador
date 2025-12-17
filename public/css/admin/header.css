@@ -1,60 +1,113 @@
-header {
+:root {
+    --admin-header-height: 72px;
+    --admin-gap: 0.5rem;
+    --admin-radius: 12px;
+    --admin-border: rgba(0, 0, 0, 0.08);
+}
+
+body > header {
     position: sticky;
     top: 0;
     z-index: 1000;
     display: flex;
-    justify-content: space-around;
     align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    min-height: var(--admin-header-height);
+    background: var(--color_header);
+    border-bottom: 1px solid var(--admin-border);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
 }
 
-nav {
+body > header h1 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: var(--color_texto);
+    letter-spacing: -0.01em;
+}
+
+body > header nav {
     display: flex;
-    justify-content: center;
     align-items: center;
-    width: 30%;
-    height: 100%;
+    gap: var(--admin-gap);
+    margin-left: auto;
 }
 
-nav a {
-    margin: 0 0.2rem;
-    width: 30%;
-}
-
-nav a p {
-    display: flex;
-    justify-content: center;
+body > header nav a {
+    display: inline-flex;
     align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    padding: 0.55rem 0.9rem;
+    color: var(--color_texto);
+    text-decoration: none;
+    border-radius: var(--admin-radius);
+    border: 1px solid transparent;
+    font-weight: 600;
+    transition: background 160ms ease, color 160ms ease, border-color 160ms ease, transform 140ms ease;
 }
 
-nav a,
-nav a p {
-    height: 100%;
-    width: 10dvw;
+body > header nav a:hover {
+    background: color-mix(in hsl, var(--color_header), hsl(0 0% 100% / 10%));
+    border-color: color-mix(in hsl, var(--color_header), hsl(0 0% 0% / 12%));
+    transform: translateY(-1px);
 }
 
-nav a:hover {
-    text-decoration: underline;
-    background-color: var(--color_boton);
+body > header nav a[aria-current="page"] {
+    background: color-mix(in hsl, var(--color_boton), hsl(0 0% 100% / 15%));
+    color: var(--color_texto_boton);
 }
 
-@media screen and (max-width: 768px) {
-    header {
-        flex-direction: column;
-        align-items: center;
-        height: auto;
+/* Botón hamburguesa compartido con el menú lateral */
+body > header .menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    width: 42px;
+    height: 42px;
+    padding: 0.35rem;
+    border-radius: 12px;
+    border: 1px solid var(--admin-border);
+    background: color-mix(in hsl, var(--color_header), hsl(0 0% 100% / 8%));
+    color: var(--color_texto);
+    cursor: pointer;
+    transition: background 150ms ease, border-color 150ms ease, transform 140ms ease;
+}
+
+body > header .menu-toggle:hover {
+    background: color-mix(in hsl, var(--color_header), hsl(0 0% 100% / 14%));
+    border-color: color-mix(in hsl, var(--color_header), hsl(0 0% 0% / 12%));
+}
+
+body > header .menu-toggle:active {
+    transform: scale(0.98);
+}
+
+@media screen and (max-width: 1024px) {
+    body > header {
+        flex-wrap: wrap;
+        gap: 0.6rem;
     }
 
-    nav {
-        margin-top: 1rem;
+    body > header nav {
         width: 100%;
-        justify-content: space-evenly;
+        justify-content: flex-start;
+        flex-wrap: wrap;
     }
 
-    nav a {
-        margin: 10px 0;
-        width: 30%;
-        display: flex;
+    body > header nav a {
+        flex: 1 1 calc(50% - 0.6rem);
         justify-content: center;
-        align-self: center;
+    }
+}
+
+@media screen and (max-width: 640px) {
+    body > header nav a {
+        flex: 1 1 100%;
+    }
+
+    body > header h1 {
+        width: 100%;
     }
 }

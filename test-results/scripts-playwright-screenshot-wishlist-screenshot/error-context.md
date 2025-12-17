@@ -1,0 +1,41 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - heading "📸 Props Fotográficos" [level=1] [ref=e5]:
+        - link "📸 Props Fotográficos" [ref=e6] [cursor=pointer]:
+          - /url: /mostrador/
+      - navigation [ref=e7]:
+        - link "🏠 Inicio" [ref=e8] [cursor=pointer]:
+          - /url: /mostrador/
+        - link "🛍️ Productos" [ref=e9] [cursor=pointer]:
+          - /url: /mostrador/productos
+        - link "❤️ Wishlist" [ref=e10] [cursor=pointer]:
+          - /url: /mostrador/wishlist
+        - link "🛒 Carrito" [ref=e11] [cursor=pointer]:
+          - /url: /mostrador/cart
+        - link "📞 Contacto" [ref=e12] [cursor=pointer]:
+          - /url: /mostrador/contacto
+      - generic [ref=e13]:
+        - link "Ingresar" [ref=e14] [cursor=pointer]:
+          - /url: /mostrador/login
+        - link "Registrarse" [ref=e15] [cursor=pointer]:
+          - /url: /mostrador/register
+  - main [ref=e16]:
+    - generic [ref=e17]:
+      - heading "LOGIN" [level=1] [ref=e18]
+      - generic [ref=e19]:
+        - heading "Email" [level=3] [ref=e20]
+        - textbox [ref=e21]
+        - heading "Contraseña" [level=3] [ref=e22]
+        - textbox [ref=e23]
+        - button "Ingresar" [ref=e24] [cursor=pointer]
+      - paragraph [ref=e25]:
+        - text: ¿No tienes cuenta?
+        - link "Regístrate aquí" [ref=e26] [cursor=pointer]:
+          - /url: /mostrador/register
+  - contentinfo [ref=e27]:
+    - paragraph [ref=e28]: © 2025 Props Fotográficos
+```

@@ -72,6 +72,7 @@ class CatalogController
             'products' => $products,
             'cats'     => $cats,
             'page_css' => 'product.css',
+            'page2_css'=> 'index.css',
             'page_js'  => 'cart.js',
         ], 'public');
     }

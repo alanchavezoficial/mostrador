@@ -3,6 +3,7 @@ require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/auth.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../core/permissions.php';
 
 mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
@@ -18,8 +19,17 @@ class AdminController
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
+        
+        // Verificar autenticación
         if (!isset($_SESSION['user_id'])) {
             header('Location: ' . BASE_URL . 'login');
+            exit;
+        }
+        
+        // Permitir acceso a admin, Dueno y vendedor
+        $allowedRoles = ['admin', 'Dueno', 'vendedor'];
+        if (!isset($_SESSION['role']) || !in_array($_SESSION['role'], $allowedRoles)) {
+            header('Location: ' . BASE_URL . '?error=Acceso+denegado.+No+tienes+permisos+para+esta+sección.');
             exit;
         }
     }
@@ -37,6 +47,8 @@ class AdminController
         $topReferrers = [];
         $topClicks = [];
         $topCountries = [];
+        $topWishlisted = [];
+        $topProductBuyers = [];
         try {
             $analyticsTotal = $this->conn->query("SELECT COUNT(*) FROM analytics_events")->fetch_row()[0] ?? 0;
             $analyticsUnique = $this->conn->query("SELECT COUNT(DISTINCT session_id) FROM analytics_events WHERE session_id IS NOT NULL")->fetch_row()[0] ?? 0;
@@ -50,12 +62,22 @@ class AdminController
             while ($row = $res->fetch_assoc()) {
                 $topReferrers[] = $row;
             }
-            $res = $this->conn->query("SELECT element, COUNT(*) AS cnt FROM analytics_events WHERE event_type = 'click' AND element IS NOT NULL GROUP BY element ORDER BY cnt DESC LIMIT 5");
+            $res = $this->conn->query("SELECT COALESCE(NULLIF(element,''), JSON_UNQUOTE(JSON_EXTRACT(metadata,'$.element'))) AS element, COUNT(*) AS cnt FROM analytics_events WHERE event_type = 'click' GROUP BY COALESCE(NULLIF(element,''), JSON_UNQUOTE(JSON_EXTRACT(metadata,'$.element'))) ORDER BY cnt DESC LIMIT 5");
             while ($row = $res->fetch_assoc()) {
                 $topClicks[] = $row;
             }
             $res = $this->conn->query("SELECT country, COUNT(*) AS cnt FROM analytics_events WHERE country IS NOT NULL AND country != '' GROUP BY country ORDER BY cnt DESC LIMIT 5");
             while ($row = $res->fetch_assoc()) { $topCountries[] = $row; }
+            // Top wishlisted products (by distinct users)
+            try {
+                $res = $this->conn->query("SELECT w.product_id, p.nombre AS name, COUNT(DISTINCT w.user_id) AS cnt FROM wishlist w JOIN products p ON p.id = w.product_id GROUP BY w.product_id, p.nombre ORDER BY cnt DESC LIMIT 5");
+                while ($row = $res->fetch_assoc()) { $topWishlisted[] = $row; }
+            } catch (Throwable $e2) { /* wishlist table may not exist */ }
+            // Top products by distinct buyers (only completed payments)
+            try {
+                $res = $this->conn->query("SELECT oi.product_id, p.nombre AS name, COUNT(DISTINCT o.user_id) AS cnt FROM order_items oi JOIN orders o ON o.id = oi.order_id JOIN products p ON p.id = oi.product_id WHERE oi.product_id IS NOT NULL AND o.payment_status = 'completed' GROUP BY oi.product_id, p.nombre ORDER BY cnt DESC LIMIT 5");
+                while ($row = $res->fetch_assoc()) { $topProductBuyers[] = $row; }
+            } catch (Throwable $e3) { /* orders/order_items may not exist */ }
         } catch (Throwable $e) {
             // ignore missing table
         }
@@ -72,7 +94,9 @@ class AdminController
             'requiredScripts' => ['admin/admin-dashboard.js'],
             'top_referrers' => $topReferrers,
             'top_clicks' => $topClicks,
-            'top_countries' => $topCountries
+            'top_countries' => $topCountries,
+            'top_wishlisted' => $topWishlisted,
+            'top_product_buyers' => $topProductBuyers
         ], 'admin');
     }
 
@@ -100,8 +124,19 @@ class AdminController
 
         switch ($view) {
             case 'register':
+                // Obtener roles disponibles de la BD (ENUM en tabla users)
+                $rolesQuery = "SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS 
+                               WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='role'";
+                $rolesResult = $this->conn->query($rolesQuery);
+                $rolesRow = $rolesResult->fetch_assoc();
+                
+                // Extraer valores del ENUM
+                $enumString = $rolesRow['COLUMN_TYPE'];
+                preg_match("/^enum\((.*)\)$/", $enumString, $matches);
+                $rolesArray = array_map(fn($v) => trim($v, "'\""), explode(',', $matches[1]));
+                
                 $viewName = 'users/register';
-                $data = ['message' => $message];
+                $data = ['message' => $message, 'rolesArray' => $rolesArray];
                 break;
 
             case 'table':
@@ -261,7 +296,16 @@ class AdminController
             die("Usuario no encontrado.");
         }
 
-        $roles = ['owner', 'admin', 'vendedor', 'gerente'];
+        // Obtener roles disponibles de la BD (ENUM en tabla users)
+        $rolesQuery = "SELECT COLUMN_TYPE FROM INFORMATION_SCHEMA.COLUMNS 
+                       WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME='users' AND COLUMN_NAME='role'";
+        $rolesResult = $this->conn->query($rolesQuery);
+        $rolesRow = $rolesResult->fetch_assoc();
+        
+        // Extraer valores del ENUM
+        $enumString = $rolesRow['COLUMN_TYPE'];
+        preg_match("/^enum\((.*)\)$/", $enumString, $matches);
+        $roles = array_map(fn($v) => trim($v, "'\""), explode(',', $matches[1]));
 
         View::renderPartial('users/edit', [
             'user'  => $user,
@@ -298,6 +342,85 @@ class AdminController
             exit;
         } catch (Throwable $e) {
             echo "<pre>❌ Error al eliminar usuario: " . htmlspecialchars($e->getMessage()) . "</pre>";
+            exit;
+        }
+    }
+
+    public function profile(): void
+    {
+        require_once __DIR__ . '/../core/auth.php';
+        
+        // Obtener datos del usuario actual
+        $userId = $_SESSION['user_id'];
+        $stmt = $this->conn->prepare("SELECT * FROM users WHERE id = ?");
+        $stmt->bind_param("i", $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
+        
+        if (!$user) {
+            header('Location: ' . BASE_URL . 'admin/dashboard');
+            exit;
+        }
+        
+        View::render('admin/profile', [
+            'meta_title' => 'Mi Perfil',
+            'user' => $user
+        ]);
+    }
+
+    /**
+     * Actualizar perfil del administrador
+     */
+    public function profileUpdate(): void
+    {
+        require_once __DIR__ . '/../core/csrf.php';
+        require_once __DIR__ . '/../core/auth.php';
+
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+            http_response_code(400);
+            die('Método no permitido.');
+        }
+
+        csrf_require();
+
+        try {
+            $nombre = trim($_POST['nombre'] ?? '');
+            $email = trim($_POST['email'] ?? '');
+            $userId = $_SESSION['user_id'];
+
+            if (!$nombre || !$email) {
+                throw new Exception('Faltan campos requeridos.');
+            }
+
+            // Verificar que el email no esté en uso por otro usuario
+            $stmt = $this->conn->prepare('SELECT id FROM users WHERE email = ? AND id != ?');
+            $stmt->bind_param('si', $email, $userId);
+            $stmt->execute();
+            if ($stmt->get_result()->num_rows > 0) {
+                throw new Exception('El email ya está en uso.');
+            }
+
+            // Actualizar información básica
+            $stmt = $this->conn->prepare('UPDATE users SET nombre = ?, email = ? WHERE id = ?');
+            $stmt->bind_param('ssi', $nombre, $email, $userId);
+            $stmt->execute();
+
+            // Actualizar contraseña si fue enviada
+            if (!empty($_POST['password'])) {
+                if (strlen($_POST['password']) < 6) {
+                    throw new Exception('La contraseña debe tener al menos 6 caracteres.');
+                }
+                $hash = password_hash($_POST['password'], PASSWORD_DEFAULT);
+                $stmt = $this->conn->prepare('UPDATE users SET password = ? WHERE id = ?');
+                $stmt->bind_param('si', $hash, $userId);
+                $stmt->execute();
+            }
+
+            header('Location: ' . BASE_URL . 'admin/perfil?updated=1');
+            exit;
+        } catch (Throwable $e) {
+            echo '<pre>❌ Error: ' . htmlspecialchars($e->getMessage()) . '</pre>';
             exit;
         }
     }

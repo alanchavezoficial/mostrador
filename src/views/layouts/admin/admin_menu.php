@@ -1,7 +1,5 @@
 <aside class="menu admin-menu" role="navigation" aria-label="Panel de administración">
-  <div class="menu-header">
-    <button id="menu-collapse" class="menu-collapse" aria-label="Minimizar menú" title="Minimizar menú">⫶</button>
-  </div>
+  <!-- menu-collapse removed for simplicity and consistent UX -->
   <ul>
     <li class="menu-item">
       <button class="toggle" aria-expanded="false" aria-controls="submenu-usuarios" data-tooltip="Usuarios" aria-label="Usuarios">
@@ -113,7 +111,7 @@
     </li>
 
     <li class="menu-item">
-      <a href="<?= BASE_URL ?>admin/pedidos" class="toggle" data-tooltip="Pedidos" aria-label="Pedidos">
+      <a href="<?= BASE_URL ?>admin/pedidos" class="toggle no-chevron" data-tooltip="Pedidos" aria-label="Pedidos">
         <span class="icon">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
             <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 1 0 0 4 2 2 0 0 0 0-4zm-8 2a2 2 0 1 1-4 0 2 2 0 0 1 4 0z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>

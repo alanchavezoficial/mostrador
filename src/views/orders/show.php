@@ -1,6 +1,5 @@
 <?php
 $page_css = $page_css ?? 'cart.css';
-include_once __DIR__ . '/../layouts/header.php';
 ?>
 <section class="cart-page">
   <h1>Pedido #<?= htmlspecialchars($order['order_number']) ?></h1>
@@ -8,7 +7,7 @@ include_once __DIR__ . '/../layouts/header.php';
     <p>Estado: <strong><?= htmlspecialchars($order['status']) ?></strong></p>
     <p>Pago: <strong><?= htmlspecialchars($order['payment_status']) ?></strong></p>
     <p>Total: <strong>$<?= number_format($order['total_amount'], 2, ',', '.') ?></strong></p>
-    <a class="btn-primary" href="<?= BASE_URL ?>orders/invoice?id=<?= $order['id'] ?>">Descargar factura</a>
+    <a class="btn-primary" href="<?= BASE_URL ?>orders/invoice?id=<?= $order['id'] ?>" target="_blank" rel="noopener">Descargar factura</a>
   </div>
 
   <div class="cart-summary" style="flex-direction: column; align-items: flex-start;">
@@ -43,4 +42,3 @@ include_once __DIR__ . '/../layouts/header.php';
     </tbody>
   </table>
 </section>
-<?php include_once __DIR__ . '/../layouts/footer.php'; ?>

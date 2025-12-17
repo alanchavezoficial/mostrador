@@ -50,14 +50,37 @@ class WishlistController
             $del = $this->conn->prepare("DELETE FROM wishlist WHERE id = ?");
             $del->bind_param('i', $exists['id']);
             $del->execute();
-            echo json_encode(['success' => true, 'state' => 'removed']);
+            echo json_encode(['success' => true, 'action' => 'removed']);
             return;
         }
 
         $ins = $this->conn->prepare("INSERT INTO wishlist (user_id, product_id) VALUES (?, ?)");
         $ins->bind_param('ii', $userId, $productId);
         $ok = $ins->execute();
-        echo json_encode(['success' => $ok, 'state' => 'added']);
+        echo json_encode(['success' => $ok, 'action' => 'added']);
+    }
+
+    public function getIds(): void
+    {
+        header('Content-Type: application/json');
+        
+        if (!isset($_SESSION['user_id'])) {
+            echo json_encode(['success' => true, 'product_ids' => []]);
+            return;
+        }
+        
+        $userId = (int)$_SESSION['user_id'];
+        $stmt = $this->conn->prepare("SELECT product_id FROM wishlist WHERE user_id = ?");
+        $stmt->bind_param('i', $userId);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        $productIds = [];
+        while ($row = $result->fetch_assoc()) {
+            $productIds[] = (int)$row['product_id'];
+        }
+        
+        echo json_encode(['success' => true, 'product_ids' => $productIds]);
     }
 
     public function view(): void

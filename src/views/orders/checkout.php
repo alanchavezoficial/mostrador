@@ -1,6 +1,5 @@
 <?php
 $page_css = $page_css ?? 'cart.css';
-include_once __DIR__ . '/../layouts/header.php';
 ?>
 
 <section class="cart-page">
@@ -74,5 +73,3 @@ include_once __DIR__ . '/../layouts/header.php';
     </table>
   <?php endif; ?>
 </section>
-
-<?php include_once __DIR__ . '/../layouts/footer.php'; ?>

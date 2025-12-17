@@ -1,7 +1,6 @@
 <?php
 $page_css = $page_css ?? 'cart.css';
 $page_js = $page_js ?? 'cart.js';
-include_once __DIR__ . '/../layouts/header.php';
 ?>
 
 <section class="cart-page">
@@ -23,7 +22,7 @@ include_once __DIR__ . '/../layouts/header.php';
         <?php foreach ($items as $item): ?>
           <tr data-product-id="<?= $item['product_id'] ?>">
             <td class="product" data-label="Producto">
-              <img src="<?= BASE_URL ?>public/img/<?= htmlspecialchars($item['imagen']) ?>" alt="<?= htmlspecialchars($item['nombre']) ?>" />
+              <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($item['imagen']) ?>" alt="<?= htmlspecialchars($item['nombre']) ?>" />
               <span><?= htmlspecialchars($item['nombre']) ?></span>
             </td>
             <td data-label="Precio">$<?= number_format($item['precio'], 2, ',', '.') ?></td>
@@ -46,5 +45,3 @@ include_once __DIR__ . '/../layouts/header.php';
     </div>
   <?php endif; ?>
 </section>
-
-<?php include_once __DIR__ . '/../layouts/footer.php'; ?>

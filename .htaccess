@@ -1,3 +1,11 @@
-RewriteEngine On
-RewriteRule ^$ public/ [L]
-RewriteRule (.*) public/$1 [L]
+<IfModule mod_rewrite.c>
+	RewriteEngine On
+	RewriteBase /mostrador/
+
+	# No reescribir si el recurso existe (archivo o carpeta)
+	RewriteCond %{REQUEST_FILENAME} !-f
+	RewriteCond %{REQUEST_FILENAME} !-d
+
+	# Enviar todas las demás rutas a index.php
+	RewriteRule ^ index.php [L]
+</IfModule>

@@ -1,6 +1,6 @@
 
 <?php 
-require_once __DIR__ . '/../../../core/auth.php'; 
+require_once __DIR__ . '/../../../core/auth.php';
 ?>
 
 <h2 class="form-title">👤 Crear nuevo usuario</h2>
@@ -28,12 +28,22 @@ require_once __DIR__ . '/../../../core/auth.php';
     <input type="password" id="password" name="password" required>
   </div>
 
-  <!-- Campo: rol del usuario -->
+  <!-- Campo: rol del usuario (dinámico desde BD) -->
   <div class="form-group">
     <label for="role">Rol:</label>
     <select id="role" name="role" required>
-      <option value="admin">Administrador</option>
-      <option value="owner">Dueño</option>
+      <option value="">-- Seleccionar rol --</option>
+      <?php if (isset($rolesArray) && is_array($rolesArray)): ?>
+        <?php foreach ($rolesArray as $role): ?>
+          <option value="<?= htmlspecialchars($role) ?>">
+            <?= htmlspecialchars(ucfirst($role)) ?>
+          </option>
+        <?php endforeach; ?>
+      <?php else: ?>
+        <option value="admin">Administrador</option>
+        <option value="cliente">Cliente</option>
+        <option value="Dueno">Dueño</option>
+      <?php endif; ?>
     </select>
   </div>
 

@@ -10,12 +10,20 @@
     th, td { border: 1px solid #e5e7eb; padding: 10px; text-align: left; }
     th { background: #f3f4f6; }
     .totals { margin-top: 12px; }
+    @media print {
+      @page { margin: 16mm; }
+    }
   </style>
+  <script>
+    window.addEventListener('load', function () {
+      try { window.print(); } catch (e) {}
+    });
+  </script>
 </head>
 <body>
   <h1>Factura #<?= htmlspecialchars($order['order_number']) ?></h1>
   <p><strong>Fecha:</strong> <?= htmlspecialchars($order['created_at']) ?></p>
-  <p><strong>Cliente:</strong> Usuario #<?= htmlspecialchars($order['user_id']) ?></p>
+  <p><strong>Cliente:</strong> <?= htmlspecialchars($order['username'] ?? ('Usuario #' . $order['user_id'])) ?></p>
   <p><strong>Envío:</strong><br><?= nl2br(htmlspecialchars($order['shipping_address'])) ?></p>
   <?php if (!empty($order['billing_address'])): ?>
     <p><strong>Facturación:</strong><br><?= nl2br(htmlspecialchars($order['billing_address'])) ?></p>

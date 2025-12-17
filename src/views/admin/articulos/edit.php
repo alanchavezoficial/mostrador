@@ -2,10 +2,11 @@
 require_once __DIR__ . '/../../../core/auth.php'; 
 ?>
 <form method="POST"
-      action="<?= BASE_URL ?>admin/articulos/editar"
-      data-ajax-form
-      data-ajax
-      class="form-block">
+  action="<?= BASE_URL ?>admin/articulos/editar"
+  enctype="multipart/form-data"
+  data-ajax-form
+  data-ajax
+  class="form-block">
   <?= csrf_field(); ?>
 
   <h2 class="form-title">Editar artículo</h2>
@@ -45,6 +46,11 @@ require_once __DIR__ . '/../../../core/auth.php';
     <label>
       <input type="checkbox" name="is_featured" <?= $article['is_featured'] ? 'checked' : '' ?>>
       Destacado
+    </label>
+
+    <label>
+      <input type="checkbox" name="is_carousel" <?= ($article['is_carousel'] ?? 0) ? 'checked' : '' ?>>
+      Mostrar en carrusel (máx. 5)
     </label>
   </div>
 
@@ -88,6 +94,12 @@ require_once __DIR__ . '/../../../core/auth.php';
         <option value="<?= $c['id'] ?>" <?= $selected ?>><?= htmlspecialchars($c['nombre']) ?></option>
       <?php endwhile; ?>
     </select>
+  </div>
+
+  <div class="form-group">
+    <label for="edit-images">Imágenes (puedes agregar más)</label>
+    <input type="file" id="edit-images" name="images[]" multiple accept="image/*" class="form-input">
+    <small>La primera nueva se marcará como principal si no existe una.</small>
   </div>
 
   <div class="form-actions">

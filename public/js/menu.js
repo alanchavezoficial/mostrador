@@ -16,32 +16,39 @@ document.addEventListener('DOMContentLoaded', () => {
 
   toggles.forEach(toggle => {
     const submenu = toggle.nextElementSibling;
+    const hasSubmenu = submenu && submenu.classList.contains('submenu');
 
-    // Make sure ARIA attributes reflect initial state
-    toggle.setAttribute('aria-expanded', 'false');
-    if (submenu) submenu.setAttribute('aria-hidden', 'true');
+    // Only attach submenu behavior when a submenu exists
+    if (hasSubmenu) {
+      // Make sure ARIA attributes reflect initial state
+      toggle.setAttribute('aria-expanded', 'false');
+      submenu.setAttribute('aria-hidden', 'true');
 
-    const toggleHandler = (e) => {
-      // Close other submenus
-      document.querySelectorAll('.admin-menu .submenu.open').forEach(openMenu => {
-        if (openMenu !== submenu) {
-          openMenu.classList.remove('open');
-          const relatedToggle = openMenu.previousElementSibling;
-          if (relatedToggle) relatedToggle.setAttribute('aria-expanded', 'false');
-          openMenu.setAttribute('aria-hidden', 'true');
-        }
+      const toggleHandler = (e) => {
+        // Close other submenus (accordion behavior)
+        document.querySelectorAll('.admin-menu .submenu.open').forEach(openMenu => {
+          if (openMenu !== submenu) {
+            openMenu.classList.remove('open');
+            const relatedToggle = openMenu.previousElementSibling;
+            if (relatedToggle) relatedToggle.setAttribute('aria-expanded', 'false');
+            openMenu.setAttribute('aria-hidden', 'true');
+          }
+        });
+
+        const isOpen = submenu.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        submenu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+      };
+
+      toggle.addEventListener('click', toggleHandler);
+      // Keyboard support
+      toggle.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggleHandler(ev); }
       });
-
-      const isOpen = submenu.classList.toggle('open');
-      toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-      submenu.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-    };
-
-    toggle.addEventListener('click', toggleHandler);
-    // Keyboard support
-    toggle.addEventListener('keydown', (ev) => {
-      if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); toggleHandler(ev); }
-    });
+    } else {
+      // For links without submenu, keep ARIA clean
+      toggle.removeAttribute('aria-expanded');
+    }
   });
 
   // Create backdrop when needed
@@ -116,15 +123,43 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Public header menu toggle for front-end nav
   const publicMenuToggleBtn = document.getElementById('public-menu-toggle');
-  const publicNav = document.querySelector('header nav');
+  const publicNav = document.querySelector('.nav-main');
+  
   if (publicMenuToggleBtn && publicNav) {
-    publicMenuToggleBtn.addEventListener('click', () => {
+    // Toggle menu open/close
+    publicMenuToggleBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
       const isOpen = publicNav.classList.toggle('open');
+      publicMenuToggleBtn.classList.toggle('active', isOpen);
       publicMenuToggleBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
     });
-    // Close public nav on outside click
+    
+    // Close menu when clicking outside
     document.addEventListener('click', (e) => {
-      if (!publicNav.contains(e.target) && e.target !== publicMenuToggleBtn && publicNav.classList.contains('open')) publicNav.classList.remove('open');
+      if (publicNav.classList.contains('open') && !publicNav.contains(e.target) && e.target !== publicMenuToggleBtn) {
+        publicNav.classList.remove('open');
+        publicMenuToggleBtn.classList.remove('active');
+        publicMenuToggleBtn.setAttribute('aria-expanded', 'false');
+      }
+    });
+    
+    // Close menu when clicking on nav links
+    const navLinks = publicNav.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        publicNav.classList.remove('open');
+        publicMenuToggleBtn.classList.remove('active');
+        publicMenuToggleBtn.setAttribute('aria-expanded', 'false');
+      });
+    });
+    
+    // Close menu on ESC key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && publicNav.classList.contains('open')) {
+        publicNav.classList.remove('open');
+        publicMenuToggleBtn.classList.remove('active');
+        publicMenuToggleBtn.setAttribute('aria-expanded', 'false');
+      }
     });
   }
 
@@ -141,6 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
           // Expand parent submenu
           const submenu = a.closest('.submenu');
           if (submenu) { submenu.classList.add('open'); submenu.setAttribute('aria-hidden','false'); const related = submenu.previousElementSibling; if (related) related.setAttribute('aria-expanded', 'true'); }
+          a.setAttribute('aria-current', 'page');
         }
       });
     } catch (e) { /* not critical */ }

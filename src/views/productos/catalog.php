@@ -1,7 +1,7 @@
 <?php
-$page_css = $page_css ?? 'product.css';
-$page_js  = 'cart.js';
-include_once __DIR__ . '/../layouts/header.php';
+$page_css  = $page_css ?? 'product.css';
+$page2_css = 'index.css'; // Reuse homepage card/button styles
+$page_js   = 'cart.js';
 ?>
 <section class="cart-page">
   <h1>Catálogo</h1>
@@ -29,22 +29,43 @@ include_once __DIR__ . '/../layouts/header.php';
   <?php if (empty($products)): ?>
     <p>No se encontraron productos.</p>
   <?php else: ?>
-    <div class="productos" style="display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px;">
+    <div class="productos">
       <?php foreach ($products as $p): ?>
-        <div class="card" style="padding:12px; border:1px solid #e5e7eb; border-radius:12px;">
-          <a href="<?= BASE_URL ?>product?id=<?= $p['id'] ?>" style="text-decoration:none; color:inherit;">
-            <img src="<?= BASE_URL ?>public/img/<?= htmlspecialchars($p['imagen']) ?>" alt="<?= htmlspecialchars($p['nombre']) ?>" style="width:100%; height:180px; object-fit:cover; border-radius:8px;">
-            <h3><?= htmlspecialchars($p['nombre']) ?></h3>
-            <p><?= htmlspecialchars($p['categoria_nombre'] ?? '') ?></p>
-            <p>$<?= number_format($p['precio'], 2, ',', '.') ?></p>
+        <div class="card-wrapper">
+          <button class="btn-wishlist" 
+                  data-product-id="<?= $p['id'] ?>" 
+                  title="Agregar a favoritos"
+                  aria-label="Agregar a favoritos">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </button>
+
+          <a href="<?= BASE_URL ?>product/<?= $p['id'] ?>" class="card">
+            <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($p['imagen']) ?>" 
+                 alt="<?= htmlspecialchars($p['nombre']) ?>"
+                 loading="lazy"
+                 class="card-img">
+            <div class="card-content">
+              <h3><?= htmlspecialchars($p['nombre']) ?></h3>
+              <?php if (!empty($p['categoria_nombre'])): ?>
+                <small><?= htmlspecialchars($p['categoria_nombre']) ?></small>
+              <?php endif; ?>
+              <span class="price">$<?= number_format($p['precio'], 2) ?></span>
+            </div>
           </a>
-          <div style="display:flex; gap:6px; margin-top:8px;">
-            <button class="btn btn-primary" data-add-cart data-product-id="<?= $p['id'] ?>">Agregar</button>
-            <button class="btn btn-primary" data-wishlist data-product-id="<?= $p['id'] ?>">Wishlist</button>
+          <div class="card-actions">
+            <button class="btn-add-cart" data-add-cart data-product-id="<?= $p['id'] ?>">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
+              <span>Agregar al carrito</span>
+            </button>
           </div>
         </div>
       <?php endforeach; ?>
     </div>
   <?php endif; ?>
 </section>
-<?php include_once __DIR__ . '/../layouts/footer.php'; ?>

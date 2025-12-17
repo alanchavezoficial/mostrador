@@ -1,19 +1,14 @@
-/* --- General --- */
+/* ================================================
+   HOME PAGE - SPECIFIC STYLES
+   Layout, forms, buttons y utilities están centralizados
+   ================================================ */
+
+/* Main ya está en style.css pero con ajuste específico */
 main {
     max-width: 1100px;
 }
 
-section {
-    margin: 2.5em 0;
-    padding: 1.5em 0;
-}
-
-section h2 {
-    font-size: 1.8em;
-    margin-bottom: 1.2em;
-    color: var(--color_primario);
-    text-align: center;
-}
+/* Estilos de section y h2 movidos a utilities.css */
 
 /* --- BREADCRUMBS --- */
 .breadcrumbs {
@@ -45,35 +40,7 @@ section h2 {
     margin-bottom: 1em;
 }
 
-.search-form {
-    display: flex;
-    gap: 0.5em;
-    max-width: 500px;
-    margin: 0 auto;
-}
-
-.search-input {
-    flex: 1;
-    padding: 0.8em;
-    border: 1px solid var(--color_acento);
-    border-radius: 4px;
-    font-size: 1em;
-}
-
-.search-btn {
-    padding: 0.8em 1.5em;
-    background: var(--color_acento);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.3s;
-}
-
-.search-btn:hover {
-    background: var(--color_primario);
-}
+/* Estilos de .search-form, .search-input, .search-btn movidos a forms.css y buttons.css */
 
 /* --- CARROUSEL PRINCIPAL --- */
 .carrousel-container {
@@ -150,52 +117,14 @@ section h2 {
     margin: 3em 0;
 }
 
+/* Estilos de .categories-grid movidos a utilities.css como .grid-auto-sm */
 .categories-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1.5em;
 }
 
-.category-card {
-    background: var(--color_fondo);
-    border: 2px solid var(--color_acento);
-    border-radius: 8px;
-    padding: 1.5em;
-    text-align: center;
-    text-decoration: none;
-    color: var(--color_texto);
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5em;
-}
-
-.category-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-    border-color: var(--color_primario);
-}
-
-.category-icon {
-    font-size: 2.5em;
-    display: block;
-}
-
-.category-card h3 {
-    margin: 0;
-    color: var(--color_primario);
-}
-
-.category-card p {
-    margin: 0.5em 0 0;
-    font-size: 0.85em;
-    color: var(--color_texto);
-}
-
-.category-all {
-    border-style: dashed;
-}
+/* Estilos de .category-card movidos a card.css */
 
 /* --- OFERTAS ESPECIALES --- */
 .offers-section {
@@ -210,95 +139,14 @@ section h2 {
     gap: 1.5em;
 }
 
-.offer-card {
-    position: relative;
-    background: white;
-    border: 1px solid var(--color_acento);
-    border-radius: 8px;
-    overflow: hidden;
-    text-decoration: none;
-    color: var(--color_texto);
-    transition: all 0.3s ease;
-    display: flex;
-    flex-direction: column;
-}
-
-.offer-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
-}
-
-.offer-badge {
-    position: absolute;
-    top: 10px;
-    right: 10px;
-    background: #e74c3c;
-    color: white;
-    padding: 0.5em 0.8em;
-    border-radius: 4px;
-    font-weight: bold;
-    font-size: 0.9em;
-    z-index: 5;
-}
-
-.offer-img {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-}
-
-.offer-content {
-    padding: 1em;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.offer-content h3 {
-    margin: 0 0 0.5em;
-    color: var(--color_primario);
-}
-
-.price-section {
-    display: flex;
-    gap: 0.5em;
-    margin-bottom: 1em;
-    align-items: center;
-}
-
-.price-old {
-    text-decoration: line-through;
-    color: #999;
-    font-size: 0.9em;
-}
-
-.price-new {
-    font-size: 1.3em;
-    font-weight: bold;
-    color: #e74c3c;
-}
-
-.offer-btn {
-    padding: 0.6em;
-    background: var(--color_acento);
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: background 0.3s;
-    margin-top: auto;
-}
-
-.offer-btn:hover {
-    background: var(--color_primario);
-}
+/* Estilos de .offer-card, .offer-badge, etc. movidos a card.css */
 
 /* --- PRODUCTOS DESTACADOS --- */
 .featured-section {
     margin: 3em 0;
 }
 
+/* --- Grid para productos y artículos --- */
 .productos,
 .articulos {
     display: grid;
@@ -307,109 +155,61 @@ section h2 {
     padding: 1em 0;
 }
 
-/* --- Card genérica --- */
-.card {
-    display: block;
-    background: var(--color_fondo);
-    border: 1px solid var(--color_acento);
-    border-radius: 6px;
-    overflow: hidden;
-    padding: 0;
-    text-decoration: none;
-    color: var(--color_texto);
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    display: flex;
-    flex-direction: column;
-}
-
-.card:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-}
-
-/* --- Imagen dentro de card --- */
-.card-img {
-    width: 100%;
-    height: 150px;
-    object-fit: cover;
-}
-
-/* --- Contenido de la card --- */
-.card-content {
-    padding: 1em;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-}
-
-.card-content h3 {
-    margin: 0 0 0.3em;
-    font-size: 1.2em;
-    color: var(--color_primario);
-}
-
-.card-content small,
-.article-author {
-    color: var(--color_texto);
-    display: block;
-    margin-bottom: 0.4em;
-    font-size: 0.85em;
-}
-
-.card-content p {
-    font-size: 0.9em;
-    color: var(--color_texto);
-    line-height: 1.4;
-    margin-top: 0.3em;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-height: 4em;
-    flex: 1;
-}
-
-.price {
-    display: block;
-    margin-top: 0.5em;
-    font-size: 1.1em;
-    font-weight: bold;
-    color: var(--color_acento);
-}
-
-.read-more,
-.leer-mas {
-    display: inline-block;
-    margin-top: 0.5em;
-    font-size: 0.85em;
-    color: var(--color_acento);
-    transition: color 0.2s;
-}
-
-.read-more:hover,
-.leer-mas:hover {
-    color: var(--color_primario);
-    text-decoration: underline;
-}
-
 /* --- ARTÍCULOS/NOTICIAS --- */
 .news-section {
     margin: 3em 0;
+    padding: 2em;
+    background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    border-radius: 12px;
 }
 
-.article-card {
-    position: relative;
+.section-header-wrapper {
+    text-align: center;
+    margin-bottom: 2em;
 }
 
-.article-date {
-    position: absolute;
-    top: 0.5em;
-    right: 0.5em;
-    background: var(--color_acento);
-    color: white;
-    padding: 0.3em 0.6em;
-    border-radius: 4px;
-    font-size: 0.75em;
-    font-weight: bold;
+.section-header-wrapper h2 {
+    font-size: 2.2em;
+    color: var(--color_primario);
+    margin: 0 0 0.3em 0;
+    font-weight: 700;
+}
+
+.section-subtitle {
+    font-size: 1.1em;
+    color: var(--color_texto);
+    margin: 0;
+    opacity: 0.8;
+}
+
+/* Todos los estilos de .article-card movidos a card.css */
+
+/* --- Grid para productos y artículos --- */
+
+.no-articles {
+    text-align: center;
+    padding: 3em;
+    color: var(--color_texto);
+    opacity: 0.7;
+}
+
+.no-articles p {
+    font-size: 1.2em;
+}
+
+/* Responsive Articles */
+@media (max-width: 768px) {
+    .news-section {
+        padding: 1.5em 1em;
+    }
+    
+    .section-header-wrapper h2 {
+        font-size: 1.8em;
+    }
+    
+    .section-subtitle {
+        font-size: 1em;
+    }
 }
 
 /* --- TESTIMONIOS --- */
@@ -421,9 +221,32 @@ section h2 {
 }
 
 .testimonials-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 2em;
+    display: flex;
+    gap: 1.5em;
+    overflow-x: auto;
+    overflow-y: hidden;
+    scroll-behavior: smooth;
+    padding: 1em 0;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color_boton) #f0f0f0;
+}
+
+.testimonials-grid::-webkit-scrollbar {
+    height: 8px;
+}
+
+.testimonials-grid::-webkit-scrollbar-track {
+    background: #f0f0f0;
+    border-radius: 4px;
+}
+
+.testimonials-grid::-webkit-scrollbar-thumb {
+    background: var(--color_boton);
+    border-radius: 4px;
+}
+
+.testimonials-grid::-webkit-scrollbar-thumb:hover {
+    background: var(--color_primario);
 }
 
 .testimonial-card {
@@ -432,6 +255,12 @@ section h2 {
     border-radius: 8px;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     text-align: center;
+    min-width: 280px;
+    max-width: 280px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
 }
 
 .testimonial-card .stars {
@@ -445,6 +274,7 @@ section h2 {
     color: var(--color_texto);
     margin-bottom: 1em;
     line-height: 1.6;
+    flex-grow: 1;
 }
 
 .testimonial-author {
@@ -471,36 +301,7 @@ section h2 {
     margin-bottom: 1.5em;
     font-size: 1.1em;
 }
-
-.newsletter-form {
-    display: flex;
-    gap: 0.5em;
-    max-width: 500px;
-    margin: 1.5em auto;
-}
-
-.newsletter-input {
-    flex: 1;
-    padding: 0.8em;
-    border: none;
-    border-radius: 4px;
-    font-size: 1em;
-}
-
-.newsletter-btn {
-    padding: 0.8em 1.5em;
-    background: rgba(0, 0, 0, 0.2);
-    color: white;
-    border: 2px solid white;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s;
-}
-
-.newsletter-btn:hover {
-    background: white;
-    color: var(--color_acento);
+/* Estilos de .newsletter-form, .newsletter-input, .newsletter-btn movidos a forms.css y buttons.css */   color: var(--color_acento);
 }
 
 .newsletter-notice {

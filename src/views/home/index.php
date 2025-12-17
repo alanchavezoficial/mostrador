@@ -10,12 +10,59 @@ $testimonialController = new TestimonialController();
 $contactController = new ContactController();
 
 include_once __DIR__ . '/../layouts/header.php';
-?>
 
-<!-- BREADCRUMBS -->
-<nav class="breadcrumbs" aria-label="Migas de pan">
-  <a href="<?= BASE_URL ?>">Inicio</a>
-</nav>
+$carouselRes = $conn->query("
+  SELECT a.id, a.title, a.meta_description,
+         (SELECT image_path FROM article_images ai WHERE ai.article_id = a.id AND ai.is_primary = 1 ORDER BY ai.id ASC LIMIT 1) AS image_path
+  FROM articles a
+  WHERE a.is_carousel = 1 AND a.is_visible = 1
+  ORDER BY a.published_at DESC
+  LIMIT 5
+");
+?>
+<section class="carrousel-container">
+  <div class="carrousel" id="mainCarousel">
+    <?php if ($carouselRes && $carouselRes->num_rows): ?>
+      <?php while ($a = $carouselRes->fetch_assoc()): ?>
+        <?php
+          $bgImage = !empty($a['image_path']) ? BASE_URL . 'uploads/' . htmlspecialchars($a['image_path']) : null;
+          $bgStyle = $bgImage
+            ? "background: linear-gradient(135deg, rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url('{$bgImage}') center/cover no-repeat;"
+            : 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);';
+        ?>
+        <div class="slide" style="<?= $bgStyle ?>">
+          <div class="slide-content">
+            <h2><?= htmlspecialchars($a['title']) ?></h2>
+            <p><?= htmlspecialchars($a['meta_description'] ?? '') ?></p>
+            <a class="slide-link" href="<?= BASE_URL ?>articulo/<?= $a['id'] ?>">Ver artículo</a>
+          </div>
+        </div>
+      <?php endwhile; ?>
+    <?php else: ?>
+      <div class="slide" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+        <div class="slide-content">
+          <h2>Bienvenido a Props Fotográficos</h2>
+          <p>Encuentra los mejores accesorios para tus sesiones</p>
+        </div>
+      </div>
+    <?php endif; ?>
+  </div>
+  <button class="carousel-nav prev" id="carouselPrev" aria-label="Diapositiva anterior">❮</button>
+  <button class="carousel-nav next" id="carouselNext" aria-label="Siguiente diapositiva">❯</button>
+</section>
+
+<!-- MENSAJES DE ERROR/SUCCESS -->
+<?php if (isset($_GET['error'])): ?>
+    <div style="background-color: #fee; color: #c33; padding: 12px 16px; margin: 12px 20px; border-radius: 4px; border-left: 4px solid #c33;">
+        ⚠️ <?= htmlspecialchars($_GET['error']) ?>
+    </div>
+<?php endif; ?>
+
+<?php if (isset($_GET['success'])): ?>
+    <div style="background-color: #efe; color: #3c3; padding: 12px 16px; margin: 12px 20px; border-radius: 4px; border-left: 4px solid #3c3;">
+        ✅ <?= htmlspecialchars($_GET['success']) ?>
+    </div>
+<?php endif; ?>
 
 <!-- BARRA DE BÚSQUEDA DESTACADA -->
 <section class="search-section">
@@ -24,32 +71,6 @@ include_once __DIR__ . '/../layouts/header.php';
     <input type="text" name="q" placeholder="Buscar productos, categorías..." class="search-input" aria-label="Buscar productos">
     <button type="submit" class="search-btn">🔍 Buscar</button>
   </form>
-</section>
-
-<!-- CARROUSEL PRINCIPAL -->
-<section class="carrousel-container">
-  <div class="carrousel" id="mainCarousel">
-    <div class="slide" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
-      <div class="slide-content">
-        <h2>Bienvenido a Props Fotográficos</h2>
-        <p>Encuentra los mejores accesorios para tus sesiones</p>
-      </div>
-    </div>
-    <div class="slide" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
-      <div class="slide-content">
-        <h2>Ofertas Especiales</h2>
-        <p>Descubre nuestras promociones exclusivas</p>
-      </div>
-    </div>
-    <div class="slide" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
-      <div class="slide-content">
-        <h2>Catálogo Premium</h2>
-        <p>Explora nuestra amplia selección de productos</p>
-      </div>
-    </div>
-  </div>
-  <button class="carousel-nav prev" id="carouselPrev" aria-label="Diapositiva anterior">❮</button>
-  <button class="carousel-nav next" id="carouselNext" aria-label="Siguiente diapositiva">❯</button>
 </section>
 
 <!-- CATEGORÍAS PRINCIPALES -->
@@ -91,9 +112,9 @@ include_once __DIR__ . '/../layouts/header.php';
         while ($row = $result->fetch_assoc()):
             $descuento = round((($row['precio'] - $row['oferta']) / $row['precio']) * 100);
     ?>
-        <a href="<?= BASE_URL ?>product?id=<?= $row['id'] ?>" class="offer-card">
+        <a href="<?= BASE_URL ?>product/<?= $row['id'] ?>" class="offer-card">
           <div class="offer-badge">-<?= $descuento ?>%</div>
-          <img src="<?= BASE_URL ?>public/img/<?= htmlspecialchars($row['imagen']) ?>" 
+          <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($row['imagen']) ?>" 
                alt="<?= htmlspecialchars($row['nombre']) ?>"
                loading="lazy"
                class="offer-img">
@@ -123,19 +144,36 @@ include_once __DIR__ . '/../layouts/header.php';
     if ($result && $result->num_rows > 0):
         while ($row = $result->fetch_assoc()):
     ?>
-        <a href="<?= BASE_URL ?>product?id=<?= $row['id'] ?>" class="card">
-          <img src="<?= BASE_URL ?>public/img/<?= htmlspecialchars($row['imagen']) ?>" 
-               alt="<?= htmlspecialchars($row['nombre']) ?>"
-               loading="lazy"
-               class="card-img">
-          <div class="card-content">
-            <h3><?= htmlspecialchars($row['nombre']) ?></h3>
-            <p><?= htmlspecialchars($row['descripcion']) ?></p>
-            <span class="price">$<?= number_format($row['precio'], 2) ?></span>
+        <div class="card-wrapper">
+          <button class="btn-wishlist" 
+                  data-product-id="<?= $row['id'] ?>" 
+                  title="Agregar a favoritos"
+                  aria-label="Agregar a favoritos">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+            </svg>
+          </button>
+          <a href="<?= BASE_URL ?>product/<?= $row['id'] ?>" class="card">
+            <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($row['imagen']) ?>" 
+                 alt="<?= htmlspecialchars($row['nombre']) ?>"
+                 loading="lazy"
+                 class="card-img">
+            <div class="card-content">
+              <h3><?= htmlspecialchars($row['nombre']) ?></h3>
+              <p class="card-description"><?= htmlspecialchars($row['descripcion']) ?></p>
+              <span class="price">$<?= number_format($row['precio'], 2) ?></span>
+            </div>
+          </a>
+          <div class="card-actions">
+            <button class="btn-add-cart" data-add-cart data-product-id="<?= $row['id'] ?>">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="9" cy="21" r="1"></circle>
+                <circle cx="20" cy="21" r="1"></circle>
+                <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+              </svg>
+              <span>Agregar al carrito</span>
+            </button>
           </div>
-        </a>
-        <div class="card-actions" style="margin-top:6px;">
-          <button class="btn btn-primary" data-add-cart data-product-id="<?= $row['id'] ?>">Agregar al carrito</button>
         </div>
     <?php endwhile; else: ?>
         <p>No hay productos destacados.</p>
@@ -164,26 +202,54 @@ include_once __DIR__ . '/../layouts/header.php';
 
 <!-- ÚLTIMAS NOTICIAS -->
 <section class="news-section">
-  <h2>Últimas Noticias y Artículos</h2>
+  <div class="section-header-wrapper">
+    <h2>📰 Últimas Noticias y Artículos</h2>
+    <p class="section-subtitle">Mantente informado con nuestras últimas publicaciones</p>
+  </div>
   <div class="articulos">
     <?php
-    $query = "SELECT id, title, content, published_at, author FROM articles WHERE is_visible = 1 ORDER BY published_at DESC LIMIT 3";
+    $query = "
+      SELECT a.id, a.title, a.content, a.published_at, a.author,
+             (SELECT image_path FROM article_images ai WHERE ai.article_id = a.id AND ai.is_primary = 1 ORDER BY ai.id ASC LIMIT 1) AS image_path
+      FROM articles a
+      WHERE a.is_visible = 1
+      ORDER BY a.published_at DESC
+      LIMIT 3
+    ";
     $result = $conn->query($query);
 
     if ($result && $result->num_rows > 0):
         while ($a = $result->fetch_assoc()):
     ?>
-        <a href="<?= BASE_URL ?>articulo?id=<?= $a['id'] ?>" class="card article-card">
+        <a href="<?= BASE_URL ?>articulo/<?= $a['id'] ?>" class="card article-card" title="Leer: <?= htmlspecialchars($a['title']) ?>">
+          <?php if (!empty($a['image_path'])): ?>
+            <div class="article-thumb">
+              <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($a['image_path']) ?>" alt="<?= htmlspecialchars($a['title']) ?>" loading="lazy">
+            </div>
+          <?php endif; ?>
+          <div class="article-badge">📄 Artículo</div>
           <div class="article-date"><?= date('d M Y', strtotime($a['published_at'])) ?></div>
           <div class="card-content">
             <h3><?= htmlspecialchars($a['title']) ?></h3>
-            <small class="article-author">Por <?= htmlspecialchars($a['author']) ?></small>
-            <p><?= mb_substr(strip_tags($a['content']), 0, 100) ?>...</p>
-            <span class="read-more">Leer artículo →</span>
+            <small class="article-author">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 4px;">
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+              </svg>
+              Por <?= htmlspecialchars($a['author']) ?>
+            </small>
+            <p><?= mb_substr(strip_tags($a['content']), 0, 120) ?>...</p>
+            <span class="read-more">
+              Leer más 
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle;">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+            </span>
           </div>
         </a>
     <?php endwhile; else: ?>
-        <p>No hay artículos disponibles.</p>
+        <div class="no-articles">
+          <p>📭 No hay artículos disponibles en este momento.</p>
+        </div>
     <?php endif; ?>
   </div>
 </section>
@@ -227,7 +293,7 @@ include_once __DIR__ . '/../layouts/header.php';
   </div>
 </section>
 
-<?php include_once __DIR__ . '/../../views/layouts/footer.php'; ?>
+<?php include_once __DIR__ . '/../layouts/footer.php'; ?>
 
 <script>
   // Carousel automático

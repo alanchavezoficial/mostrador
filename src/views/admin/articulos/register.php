@@ -5,7 +5,7 @@ global $conn;
 
 <h2 class="form-title">📝 Publicar nuevo artículo</h2>
 
-<form method="POST" action="<?= BASE_URL ?>admin/articulos/crear" class="form-block">
+<form method="POST" action="<?= BASE_URL ?>admin/articulos/crear" class="form-block" enctype="multipart/form-data">
   <?= csrf_field(); ?>
 
   <!-- Título del artículo -->
@@ -36,6 +36,10 @@ global $conn;
       <input type="checkbox" name="is_featured">
       Marcar como destacado
     </label>
+    <label>
+      <input type="checkbox" name="is_carousel">
+      Mostrar en carrusel (máx. 5)
+    </label>
   </div>
 
   <!-- Productos relacionados -->
@@ -49,6 +53,13 @@ global $conn;
         <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?></option>
       <?php endwhile; ?>
     </select>
+  </div>
+
+  <!-- Imágenes del artículo -->
+  <div class="form-group">
+    <label for="images">Imágenes (puedes subir varias)</label>
+    <input type="file" id="images" name="images[]" multiple accept="image/*" class="form-input">
+    <small>La primera será considerada principal si no hay otra marcada.</small>
   </div>
 
   <!-- Categorías relacionadas -->

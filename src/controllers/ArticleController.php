@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/View.php';
-require_once __DIR__ . '/../core/auth.php'; 
 
 class ArticleController
 {
@@ -71,6 +70,7 @@ class ArticleController
         $author            = trim($_POST['author'] ?? 'Founder');
         $isVisible         = isset($_POST['is_visible']) ? 1 : 0;
         $isFeatured        = isset($_POST['is_featured']) ? 1 : 0;
+        $isCarousel        = isset($_POST['is_carousel']) ? 1 : 0;
         $metaTitle         = trim($_POST['meta_title'] ?? '');
         $metaDescription   = trim($_POST['meta_description'] ?? '');
         $relatedProducts   = isset($_POST['related_products']) ? implode(',', $_POST['related_products']) : '';
@@ -81,18 +81,15 @@ class ArticleController
             die("Título y contenido son obligatorios.");
         }
 
-        $stmt = $this->conn->prepare("
-            INSERT INTO articles 
-            (title, content, author, is_visible, is_featured, meta_title, meta_description, related_products, related_categories) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ");
+        $stmt = $this->conn->prepare("\n            INSERT INTO articles \n            (title, content, author, is_visible, is_featured, is_carousel, meta_title, meta_description, related_products, related_categories) \n            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n        ");
         $stmt->bind_param(
-            'sssisssss',
+            'sssiiissss',
             $title,
             $content,
             $author,
             $isVisible,
             $isFeatured,
+            $isCarousel,
             $metaTitle,
             $metaDescription,
             $relatedProducts,
@@ -103,6 +100,25 @@ class ArticleController
             http_response_code(500);
             die("Error al publicar el artículo: " . $stmt->error);
         }
+
+        $articleId = $stmt->insert_id;
+
+        // Enforce carousel limit: keep max 5 (drop oldest)
+        if ($isCarousel === 1) {
+            $countRes = $this->conn->query("SELECT id FROM articles WHERE is_carousel = 1 ORDER BY published_at DESC");
+            if ($countRes && $countRes->num_rows >= 5) {
+                // Drop the oldest
+                $oldestRes = $this->conn->query("SELECT id FROM articles WHERE is_carousel = 1 ORDER BY published_at ASC LIMIT 1");
+                if ($oldestRes && ($oldest = $oldestRes->fetch_assoc())) {
+                    $dropStmt = $this->conn->prepare("UPDATE articles SET is_carousel = 0 WHERE id = ?");
+                    $dropStmt->bind_param('i', $oldest['id']);
+                    $dropStmt->execute();
+                }
+            }
+        }
+
+        // Handle multiple images
+        $this->saveArticleImages($articleId, $_FILES['images'] ?? null);
 
         if (($_GET['ajax'] ?? '') === '1') {
             $articles = $this->conn->query("SELECT * FROM articles ORDER BY published_at DESC");
@@ -143,10 +159,13 @@ class ArticleController
 
     public function publicView(): void
     {
-        $id = intval($_GET['id'] ?? 0);
+        // Obtener ID desde GET o desde PATH (ya mapeado en router)
+        $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+        
+        // Validar que el ID sea un número positivo
         if ($id <= 0) {
             http_response_code(400);
-            die("Artículo no válido.");
+            die("Artículo no válido. Por favor, selecciona un artículo válido.");
         }
 
         $stmt = $this->conn->prepare("SELECT * FROM articles WHERE id = ? AND is_visible = 1");
@@ -157,6 +176,16 @@ class ArticleController
         if (!$article) {
             http_response_code(404);
             die("Artículo no encontrado.");
+        }
+
+        $images = [];
+        $imgStmt = $this->conn->prepare("SELECT image_path, is_primary FROM article_images WHERE article_id = ? ORDER BY is_primary DESC, id ASC");
+        $imgStmt->bind_param('i', $id);
+        if ($imgStmt->execute()) {
+            $imgRes = $imgStmt->get_result();
+            while ($row = $imgRes->fetch_assoc()) {
+                $images[] = $row;
+            }
         }
 
         $relatedProducts = [];
@@ -182,7 +211,11 @@ class ArticleController
         View::render('articulo/show', [
             'article'           => $article,
             'relatedProducts'   => $relatedProducts,
-            'relatedCategories' => $relatedCategories
+            'relatedCategories' => $relatedCategories,
+            'images'            => $images,
+            'meta_title'        => $article['meta_title'] ?: $article['title'],
+            'meta_description'  => $article['meta_description'] ?: substr($article['content'], 0, 160),
+            'page_css'          => 'article.css'
         ], 'public');
     }
 
@@ -229,6 +262,7 @@ class ArticleController
         $author            = trim($_POST['author'] ?? 'Founder');
         $isVisible         = isset($_POST['is_visible']) ? 1 : 0;
         $isFeatured        = isset($_POST['is_featured']) ? 1 : 0;
+        $isCarousel        = isset($_POST['is_carousel']) ? 1 : 0;
         $metaTitle         = trim($_POST['meta_title'] ?? '');
         $metaDescription   = trim($_POST['meta_description'] ?? '');
         $relatedProducts   = isset($_POST['related_products']) ? implode(',', $_POST['related_products']) : '';
@@ -242,12 +276,12 @@ class ArticleController
         $stmt = $this->conn->prepare("
         UPDATE articles SET 
           title = ?, content = ?, author = ?, is_visible = ?, is_featured = ?, 
-          meta_title = ?, meta_description = ?, related_products = ?, related_categories = ?, 
+                    meta_title = ?, meta_description = ?, related_products = ?, related_categories = ?, is_carousel = ?, 
           updated_at = NOW()
         WHERE id = ?
     ");
         $stmt->bind_param(
-            'sssisssssi',
+            'sssiissssii',
             $title,
             $content,
             $author,
@@ -257,6 +291,7 @@ class ArticleController
             $metaDescription,
             $relatedProducts,
             $relatedCategories,
+            $isCarousel,
             $id
         );
 
@@ -264,6 +299,23 @@ class ArticleController
             http_response_code(500);
             die("Error al actualizar el artículo: " . $stmt->error);
         }
+
+        // Enforce carousel limit after edit
+        if ($isCarousel === 1) {
+            $countRes = $this->conn->query("SELECT id FROM articles WHERE is_carousel = 1 ORDER BY published_at DESC");
+            if ($countRes && $countRes->num_rows > 5) {
+                $excess = $countRes->num_rows - 5;
+                $oldestRes = $this->conn->query("SELECT id FROM articles WHERE is_carousel = 1 ORDER BY published_at ASC LIMIT $excess");
+                while ($oldestRes && ($row = $oldestRes->fetch_assoc())) {
+                    $dropStmt = $this->conn->prepare("UPDATE articles SET is_carousel = 0 WHERE id = ?");
+                    $dropStmt->bind_param('i', $row['id']);
+                    $dropStmt->execute();
+                }
+            }
+        }
+
+        // Append new images if provided
+        $this->saveArticleImages($id, $_FILES['images'] ?? null);
 
         if (($_GET['ajax'] ?? '') === '1') {
             $articles = $this->conn->query("SELECT * FROM articles ORDER BY published_at DESC");
@@ -274,5 +326,83 @@ class ArticleController
             exit;
         }
     }
-    
+
+    private function saveArticleImages(int $articleId, ?array $files): void
+    {
+        if (!$files || empty($files['name'])) {
+            return;
+        }
+
+        $names = $files['name'];
+        $tmp   = $files['tmp_name'];
+        $errs  = $files['error'];
+
+        // Chequeo rápido de integridad
+        if (!is_array($names)) {
+            return;
+        }
+
+        $destDir = __DIR__ . '/../../public/uploads/';
+        if (!is_dir($destDir)) {
+            mkdir($destDir, 0775, true);
+        }
+
+        $hasPrimary = false;
+        $checkPrimary = $this->conn->prepare("SELECT id FROM article_images WHERE article_id = ? AND is_primary = 1 LIMIT 1");
+        $checkPrimary->bind_param('i', $articleId);
+        if ($checkPrimary->execute()) {
+            $resPrimary = $checkPrimary->get_result();
+            $hasPrimary = $resPrimary && $resPrimary->num_rows > 0;
+        }
+
+        $allowedMimes = [
+            'image/jpeg' => '.jpg',
+            'image/png'  => '.png',
+            'image/webp' => '.webp',
+            'image/gif'  => '.gif'
+        ];
+        $allowedExts = ['.jpg', '.jpeg', '.png', '.webp', '.gif'];
+
+        $finfo = function_exists('finfo_open') ? finfo_open(FILEINFO_MIME_TYPE) : null;
+        $savedAny = false;
+        foreach ($names as $i => $filename) {
+            if (empty($filename) || ($errs[$i] ?? UPLOAD_ERR_OK) !== UPLOAD_ERR_OK) {
+                continue;
+            }
+
+            $tmpPath = $tmp[$i] ?? null;
+            if (!$tmpPath || !is_uploaded_file($tmpPath)) {
+                continue;
+            }
+
+            $mime = $finfo ? @finfo_file($finfo, $tmpPath) : @mime_content_type($tmpPath);
+            $extFromMime = $mime && isset($allowedMimes[$mime]) ? $allowedMimes[$mime] : null;
+            $extFromName = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+            $extFromName = $extFromName ? '.' . $extFromName : null;
+            if ($extFromName && !in_array($extFromName, $allowedExts, true)) {
+                $extFromName = null;
+            }
+
+            // Aceptar si coincide mime permitido o extensión permitida
+            if (!$extFromMime && !$extFromName) {
+                continue;
+            }
+
+            $ext = $extFromMime ?: $extFromName;
+            $safeName = 'art_' . uniqid() . $ext;
+            $destPath = $destDir . $safeName;
+
+            if (move_uploaded_file($tmpPath, $destPath)) {
+                $isPrimary = ($hasPrimary || $savedAny) ? 0 : 1;
+                $stmtImg = $this->conn->prepare("INSERT INTO article_images (article_id, image_path, is_primary) VALUES (?, ?, ?)");
+                $stmtImg->bind_param('isi', $articleId, $safeName, $isPrimary);
+                $stmtImg->execute();
+                $savedAny = true;
+            }
+        }
+
+        if ($finfo) {
+            finfo_close($finfo);
+        }
+    }
 }

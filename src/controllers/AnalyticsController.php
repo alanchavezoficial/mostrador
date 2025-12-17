@@ -72,6 +72,11 @@ class AnalyticsController
             $ip = $clientIp;
             $metadata = isset($data['metadata']) ? json_encode($data['metadata'], JSON_UNESCAPED_UNICODE) : null;
 
+            // If element wasn't provided at top-level, try to extract from metadata
+            if (!$element && isset($data['metadata']) && is_array($data['metadata']) && !empty($data['metadata']['element'])) {
+                $element = substr(trim((string)$data['metadata']['element']), 0, 255);
+            }
+
             // Sanitize lengths
             $path = $path ? substr($path, 0, 255) : null;
             $referrer = $referrer ? substr($referrer, 0, 255) : null;
@@ -151,12 +156,17 @@ class AnalyticsController
         header('Content-Type: application/json');
         try {
             $this->ensureTableExists();
-            $limit = intval($_GET['limit'] ?? 100);
+            // Pagination params
+            $limit = intval($_GET['limit'] ?? 25);
             $limit = max(1, min(1000, $limit));
+            $page = intval($_GET['page'] ?? 1);
+            $page = max(1, $page);
+            $offset = ($page - 1) * $limit;
             $where = [];
             $params = [];
             $from = $_GET['from'] ?? null;
             $to = $_GET['to'] ?? null;
+            $eventType = $_GET['event_type'] ?? '';
             if ($from) {
                 $from = date('Y-m-d H:i:s', strtotime($from));
                 $where[] = "created_at >= '$from'";
@@ -166,9 +176,21 @@ class AnalyticsController
                 $to = date('Y-m-d H:i:s', strtotime($to));
                 $where[] = "created_at <= '$to'";
             }
+            if ($eventType) {
+                $allowed = ['pageview','click','heartbeat','time_on_page','consent_accepted','consent_declined'];
+                if (in_array($eventType, $allowed, true)) {
+                    $safe = $this->conn->real_escape_string($eventType);
+                    $where[] = "event_type = '$safe'";
+                }
+            }
             $whereSql = $where ? ('WHERE ' . implode(' AND ', $where)) : '';
-            $baseWhere = $whereSql;
-            $sql = "SELECT id, event_type, session_id, path, element, referrer, country, ip, user_agent, metadata, created_at FROM analytics_events $whereSql ORDER BY id DESC LIMIT " . $limit;
+            // total count for pagination
+            $countSql = "SELECT COUNT(*) AS total FROM analytics_events $whereSql";
+            $countRes = $this->conn->query($countSql);
+            $total = 0;
+            if ($countRes) { $rowT = $countRes->fetch_assoc(); $total = intval($rowT['total'] ?? 0); }
+
+            $sql = "SELECT id, event_type, session_id, path, element, referrer, country, ip, user_agent, metadata, created_at FROM analytics_events $whereSql ORDER BY id DESC LIMIT $limit OFFSET $offset";
             $res = $this->conn->query($sql);
             $out = [];
             while ($row = $res->fetch_assoc()) {
@@ -187,7 +209,7 @@ class AnalyticsController
                 fclose($outStream);
                 return;
             }
-            echo json_encode($out);
+            echo json_encode(['items' => $out, 'total' => $total, 'page' => $page, 'limit' => $limit]);
         } catch (Throwable $e) {
             http_response_code(500);
             echo json_encode(['error' => $e->getMessage()]);
@@ -245,7 +267,7 @@ class AnalyticsController
 
             // Top clicks
             $filter = $whereSql ? ($whereSql . " AND event_type = 'click'") : "WHERE event_type = 'click'";
-            $res = $this->conn->query("SELECT element, COUNT(*) AS cnt FROM analytics_events $filter GROUP BY element ORDER BY cnt DESC LIMIT 10");
+            $res = $this->conn->query("SELECT COALESCE(NULLIF(element,''), JSON_UNQUOTE(JSON_EXTRACT(metadata,'$.element'))) AS element, COUNT(*) AS cnt FROM analytics_events $filter GROUP BY COALESCE(NULLIF(element,''), JSON_UNQUOTE(JSON_EXTRACT(metadata,'$.element'))) ORDER BY cnt DESC LIMIT 10");
             $topClicks = [];
             while ($r = $res->fetch_assoc()) { $topClicks[] = $r; }
 

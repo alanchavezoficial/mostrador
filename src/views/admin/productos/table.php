@@ -32,7 +32,7 @@ $requiredScripts =
             <td class="text-center">
               <?php if ($p['imagen']): ?>
                 <img
-                  src="<?= BASE_URL ?>img/<?= htmlspecialchars($p['imagen']) ?>"
+                  src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($p['imagen']) ?>"
                   class="table-thumb"
                   alt="<?= htmlspecialchars($p['nombre']) ?>">
               <?php endif; ?>

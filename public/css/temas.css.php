@@ -12,7 +12,9 @@ $claves = [
   'color_boton',
   'color_fondo',
   'color_texto',
-  'color_acento'
+  'color_acento',
+  'color_titulo',
+  'color_subtitulo',
 ];
 
 // Generar variables CSS

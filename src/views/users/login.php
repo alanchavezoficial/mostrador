@@ -20,6 +20,10 @@ include __DIR__ . '/../layouts/header.php';
         <p class="error"><?= htmlspecialchars($_GET['error']) ?></p>
     <?php endif; ?>
 
+    <?php if (isset($_GET['success'])): ?>
+        <p class="success"><?= htmlspecialchars($_GET['success']) ?></p>
+    <?php endif; ?>
+
     <form action="<?= BASE_URL ?>login" method="POST" autocomplete="off">
         <?= csrf_field(); ?>
         <h3>Email</h3>
@@ -30,6 +34,10 @@ include __DIR__ . '/../layouts/header.php';
 
         <button type="submit">Ingresar</button>
     </form>
+
+    <p style="text-align: center; margin-top: 20px;">
+        ¿No tienes cuenta? <a href="<?= BASE_URL ?>register">Regístrate aquí</a>
+    </p>
 </div>
 
 <?php include __DIR__ . '/../layouts/footer.php'; ?>

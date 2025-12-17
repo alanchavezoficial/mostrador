@@ -9,6 +9,7 @@ require_once __DIR__ . '/csrf.php';
 $uri  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $base = BASE_URL;
 $path = trim(str_replace($base, '', $uri), '/');
+$segments = $path !== '' ? explode('/', $path) : [];
 
 // --------------------------
 // Rutas administrativas (GET tipo vista)
@@ -16,6 +17,7 @@ $path = trim(str_replace($base, '', $uri), '/');
 $adminRoutes = [
     'admin'                   => ['controller' => 'AdminController',     'method' => 'dashboard'],
     'admin/dashboard'         => ['controller' => 'AdminController',     'method' => 'dashboard'],
+    'admin/perfil'            => ['controller' => 'AdminController',     'method' => 'profile'],
     'admin/usuarios'          => ['controller' => 'AdminController',     'method' => 'users'],
     'admin/articulos'         => ['controller' => 'ArticleController',   'method' => 'index'],
     'admin/productos'         => ['controller' => 'ProductController',   'method' => 'index'],
@@ -42,6 +44,24 @@ if (array_key_exists($path, $adminRoutes)) {
 }
 
 // --------------------------
+// Rutas de vendedor (GET tipo vista)
+// --------------------------
+$vendorRoutes = [
+    'vendor'             => ['controller' => 'VendorController', 'method' => 'dashboard'],
+    'vendor/dashboard'   => ['controller' => 'VendorController', 'method' => 'dashboard'],
+    'vendor/productos'   => ['controller' => 'VendorController', 'method' => 'products'],
+    'vendor/ordenes'     => ['controller' => 'VendorController', 'method' => 'orders'],
+    'vendor/perfil'      => ['controller' => 'VendorController', 'method' => 'profile'],
+];
+
+if (array_key_exists($path, $vendorRoutes)) {
+    $route = $vendorRoutes[$path];
+    require_once __DIR__ . "/../controllers/{$route['controller']}.php";
+    (new $route['controller'])->{$route['method']}();
+    return;
+}
+
+// --------------------------
 // Acciones GET del panel admin (formularios parciales)
 // --------------------------
 $getActions = [
@@ -54,6 +74,7 @@ $getActions = [
     'admin/contacto/editar-form'        => ['controller' => 'ContactController',     'method' => 'contactEditForm'],
     'admin/cupones/editar-form'         => ['controller' => 'CouponController',      'method' => 'couponEditForm'],
     'admin/pedidos/editar-form'         => ['controller' => 'OrderController',       'method' => 'orderEditForm'],
+    'admin/pedidos/factura'             => ['controller' => 'OrderController',       'method' => 'adminInvoice'],
     'admin/dashboard/events'            => ['controller' => 'AnalyticsController',   'method' => 'recent'],
     'admin/dashboard/data'              => ['controller' => 'AnalyticsController',   'method' => 'stats']
 ];
@@ -131,14 +152,28 @@ $postActions = [
 
     // Wishlist
     'wishlist/toggle'        => ['controller' => 'WishlistController', 'method' => 'toggle'],
+    'wishlist/get-ids'       => ['controller' => 'WishlistController', 'method' => 'getIds'],
 
     // Reviews
     'reviews/add'            => ['controller' => 'ReviewController', 'method' => 'add'],
+
+    // Admin
+    'admin/perfil-actualizar'  => ['controller' => 'AdminController', 'method' => 'profileUpdate'],
+
+    // Vendedor
+    'vendor/perfil-actualizar' => ['controller' => 'VendorController', 'method' => 'profileUpdate'],
 ];
 
+// Wishlist: permitir GET para cargar IDs desde frontend
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && $path === 'wishlist/get-ids') {
+    require_once __DIR__ . '/../controllers/WishlistController.php';
+    (new WishlistController())->getIds();
+    return;
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && array_key_exists($path, $postActions)) {
-    // CSRF protection for admin POST endpoints
-    if (strpos($path, 'admin/') === 0 || $path === 'login') {
+    // CSRF protection for privileged POST endpoints
+    if (strpos($path, 'admin/') === 0 || strpos($path, 'vendor/') === 0 || $path === 'login') {
         csrf_require();
     }
     
@@ -157,6 +192,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && array_key_exists($path, $postAction
 // --------------------------
 // Frontend público
 // --------------------------
+// Rutas limpias tipo /product/{id} o /articulo/{id}
+if (count($segments) === 2 && $segments[0] === 'product') {
+    $pid = $segments[1];
+    if (preg_match('/^[A-Za-z0-9._-]+$/', $pid)) {
+        require_once __DIR__ . '/../controllers/ProductController.php';
+        (new ProductController())->view($pid);
+        return;
+    }
+    http_response_code(400);
+    echo "ID de producto no válido.";
+    return;
+}
+
+if (count($segments) === 2 && $segments[0] === 'articulo') {
+    $aid = $segments[1];
+    if (ctype_digit($aid)) {
+        $_GET['id'] = (int)$aid; // reutiliza controlador existente
+        require_once __DIR__ . '/../controllers/ArticleController.php';
+        (new ArticleController())->publicView();
+        return;
+    }
+    http_response_code(400);
+    echo "Artículo no válido.";
+    return;
+}
+
 switch ($path) {
     case '':
     case '/':
@@ -166,6 +227,28 @@ switch ($path) {
         require_once __DIR__ . '/../views/home/index.php';
         break;
 
+    // Fallback explícito para rutas de vendedor (por si falla el mapeo por array)
+    case 'vendor':
+    case 'vendor/dashboard':
+        require_once __DIR__ . '/../controllers/VendorController.php';
+        (new VendorController())->dashboard();
+        break;
+
+    case 'vendor/productos':
+        require_once __DIR__ . '/../controllers/VendorController.php';
+        (new VendorController())->products();
+        break;
+
+    case 'vendor/ordenes':
+        require_once __DIR__ . '/../controllers/VendorController.php';
+        (new VendorController())->orders();
+        break;
+
+    case 'vendor/perfil':
+        require_once __DIR__ . '/../controllers/VendorController.php';
+        (new VendorController())->profile();
+        break;
+
     case 'login':
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             csrf_require();
@@ -173,6 +256,16 @@ switch ($path) {
             (new UserController())->login();
         } else {
             require_once __DIR__ . '/../views/users/login.php';
+        }
+        break;
+
+    case 'register':
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            csrf_require();
+            require_once __DIR__ . '/../controllers/UserController.php';
+            (new UserController())->register();
+        } else {
+            require_once __DIR__ . '/../views/users/register.php';
         }
         break;
 
@@ -227,11 +320,13 @@ switch ($path) {
 
     case 'producto':
     case 'product':
-        if (isset($_GET['id']) && is_numeric($_GET['id'])) {
+        $pid = $_GET['id'] ?? '';
+        if (is_string($pid) && $pid !== '' && preg_match('/^[A-Za-z0-9._-]+$/', $pid)) {
             require_once __DIR__ . '/../controllers/ProductController.php';
-            (new ProductController())->view((int) $_GET['id']);
+            (new ProductController())->view($pid);
         } else {
-            echo "ID de producto no válido.";
+            // Fallback amable: redirige al catálogo si no hay ID
+            header('Location: ' . BASE_URL . 'productos');
         }
         break;
 
