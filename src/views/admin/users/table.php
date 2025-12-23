@@ -13,6 +13,7 @@ $requiredScripts = ['admin/ajax-edit.js', 'admin/ajax-form.js', 'admin/ajax-dele
         <th>Correo electrónico</th>
         <th>Rol</th>
         <th>Fecha de creación</th>
+        <?php if (strtolower($_SESSION['role'] ?? '') === 'dueno' || strtolower($_SESSION['role'] ?? '') === 'owner'): ?><th>API Key</th><?php endif; ?>
         <th class="col-actions">Acciones</th>
       </tr>
     </thead>
@@ -24,6 +25,11 @@ $requiredScripts = ['admin/ajax-edit.js', 'admin/ajax-form.js', 'admin/ajax-dele
         <td><?= htmlspecialchars($u['email']) ?></td>
         <td><?= htmlspecialchars($u['role']) ?></td>
         <td><?= date('d-m-Y', strtotime($u['created_at'])) ?></td>
+        <?php if (strtolower($_SESSION['role'] ?? '') === 'dueno' || strtolower($_SESSION['role'] ?? '') === 'owner'): ?>
+          <td style="font-family:monospace;font-size:0.9em;max-width:220px;overflow-x:auto;white-space:nowrap;">
+            <?= htmlspecialchars($u['api_key'] ?? '') ?>
+          </td>
+        <?php endif; ?>
         <td class="col-actions">
           <a href="#"
             class="btn-edit"

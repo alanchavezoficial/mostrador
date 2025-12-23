@@ -16,6 +16,7 @@ class ArticleController
 
     public function index(): void
     {
+        if (($_GET['ajax'] ?? '') === '1') define('API_MODE', true);
         require_once __DIR__ . '/../core/auth.php'; 
         $view    = $_GET['view'] ?? 'table';
         $msg     = $_GET['msg'] ?? '';
@@ -62,6 +63,7 @@ class ArticleController
 
     public function articleCreate(): void
     {
+        if (($_GET['ajax'] ?? '') === '1') define('API_MODE', true);
         require_once __DIR__ . '/../core/auth.php'; 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
@@ -137,7 +139,8 @@ class ArticleController
 
     public function articleDelete(): void
     {
-        require_once __DIR__ . '/../core/auth.php'; 
+        if (($_GET['ajax'] ?? '') === '1') define('API_MODE', true);
+        require_once __DIR__ . '/../core/auth.php';
         $id = intval($_POST['id'] ?? 0);
         if ($id <= 0) return;
 

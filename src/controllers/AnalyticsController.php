@@ -139,12 +139,27 @@ class AnalyticsController
 
     public function recent(): void
     {
+        ob_start();
         // Endpoint para admin: devuelve los últimos eventos en JSON (protegido)
+
+        define('API_MODE', true);
         require_once __DIR__ . '/../core/auth.php';
+        require_once __DIR__ . '/../core/api_key.php';
         if (session_status() === PHP_SESSION_NONE) session_start();
-        if (!isset($_SESSION['user_id']) || !in_array($_SESSION['role'] ?? '', ['owner','admin'], true)) {
+        $conn = $this->conn;
+        $api_user = null;
+        if ($api_key) {
+            $api_user = validate_api_key($api_key, $conn);
+        }
+        $role = strtolower($_SESSION['role'] ?? '');
+        $allowedRoles = ['owner', 'admin', 'dueno'];
+        if ($api_user) {
+            log_api_key_usage($api_user['user_id'], 'admin/dashboard/events', $_SERVER['REMOTE_ADDR'] ?? '', $conn);
+        } elseif (!isset($_SESSION['user_id']) || !in_array($role, $allowedRoles, true)) {
+            ob_end_clean();
+            header('Content-Type: application/json');
             http_response_code(401);
-            echo json_encode([]);
+            echo json_encode(['error' => 'No autorizado']);
             return;
         }
 
@@ -192,22 +207,35 @@ class AnalyticsController
             http_response_code(500);
             echo json_encode(['error' => $e->getMessage()]);
         }
+    
     }
-
     public function stats(): void
     {
-        // Limpiar cualquier output previo
-        if (ob_get_level()) ob_end_clean();
-        
+        ob_start();
         // Suprimir warnings/notices para asegurar JSON limpio
         error_reporting(E_ERROR | E_PARSE);
-        
+
+        define('API_MODE', true);
         require_once __DIR__ . '/../core/auth.php';
+        require_once __DIR__ . '/../core/api_key.php';
         if (session_status() === PHP_SESSION_NONE) session_start();
-        if (!isset($_SESSION['user_id'])) {
+        $conn = $this->conn;
+        $api_key = $_GET['key'] ?? '';
+        error_log('[DEBUG] API key recibida: ' . $api_key);
+        $api_user = null;
+        if ($api_key) {
+            $api_user = validate_api_key($api_key, $conn);
+            error_log('[DEBUG] Resultado validación API key: ' . print_r($api_user, true));
+        }
+        $role = strtolower($_SESSION['role'] ?? '');
+        $allowedRoles = ['owner', 'admin', 'dueno'];
+        if ($api_user) {
+            log_api_key_usage($api_user['user_id'], 'admin/dashboard/data', $_SERVER['REMOTE_ADDR'] ?? '', $conn);
+        } elseif (!isset($_SESSION['user_id']) || !in_array($role, $allowedRoles, true)) {
+            ob_end_clean();
             header('Content-Type: application/json');
             http_response_code(401);
-            echo json_encode([]);
+            echo json_encode(['error' => 'No autorizado']);
             exit;
         }
 

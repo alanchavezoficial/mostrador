@@ -10,9 +10,17 @@
   const countryCanvas = document.getElementById('countryChart');
   const routesCanvas = document.getElementById('routesChart');
 
+  // API Key para endpoints protegidos (puedes setearla dinámicamente)
+  const API_KEY = window.ADMIN_API_KEY || '';
+  if (!API_KEY) {
+    console.warn('ADMIN_API_KEY está vacío o no definido. No se podrá autenticar contra los endpoints protegidos.');
+  } else {
+    console.log('ADMIN_API_KEY:', API_KEY);
+  }
   const buildUrl = (path, params = {}) => {
     const url = new URL(BASE_URL + path, window.location.origin);
     Object.keys(params).forEach(k => { if (params[k] !== undefined && params[k] !== '') url.searchParams.set(k, params[k]); });
+    if (API_KEY) url.searchParams.set('key', API_KEY);
     return url.toString();
   };
 
@@ -76,7 +84,9 @@
 
       // Fetch aggregated stats and render charts
       try {
-        const data = await (await fetch(buildUrl('admin/dashboard/data', filters))).json();
+        const statsUrl = buildUrl('admin/dashboard/data', filters);
+        console.log('Petición de stats:', statsUrl);
+        const data = await (await fetch(statsUrl)).json();
         destroyCharts();
         if (pageviewsCanvas && data.pageviews) {
           const labels = data.pageviews.map(p => p.date);
@@ -135,10 +145,240 @@
     const filters = getFilters();
     load(filters);
   });
-  document.getElementById('export-csv')?.addEventListener('click', () => {
-    const filters = getFilters();
-    const url = buildUrl('admin/dashboard/events', Object.assign({ format: 'csv', limit: 2000 }, filters));
-    window.location.href = url;
+  document.getElementById('export-csv')?.addEventListener('click', async () => {
+    // Cargar jsPDF y autoTable dinámicamente si no están presentes
+    if (typeof window.jspdf === 'undefined') {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = '/public/js/admin/jspdf.umd.min.js';
+        script.onload = () => {
+          if (typeof window.jspdf === 'undefined') {
+            alert('No se pudo cargar jsPDF (archivo local no encontrado o corrupto).');
+            reject();
+          } else {
+            resolve();
+          }
+        };
+        script.onerror = () => {
+          alert('No se pudo cargar jsPDF (error de carga de archivo local).');
+          reject();
+        };
+        document.body.appendChild(script);
+      });
+    }
+    if (typeof window.jspdf?.jsPDF === 'undefined') {
+      // UMD build exposes window.jspdf.jsPDF
+      alert('No se pudo cargar jsPDF');
+      return;
+    }
+    if (typeof window.jspdf?.autoTable === 'undefined') {
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = '/public/js/admin/jspdf.plugin.autotable.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.body.appendChild(script);
+      });
+    }
+    // Obtener datos de eventos
+    const url = buildUrl('admin/dashboard/events', { format: 'json', limit: 10000 });
+    let events = [];
+    try {
+      const res = await fetch(url);
+      events = await res.json();
+    } catch (e) {
+      alert('No se pudieron obtener los datos de eventos');
+      return;
+    }
+    // Crear PDF
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
+    // --- Hoja 1: Tablas resumen ---
+    let y = 40;
+    doc.setFontSize(18);
+    doc.text('Resumen de eventos', 40, y);
+    y += 30;
+
+    // --- Páginas más visitadas ---
+    const topPages = {};
+    events.forEach(ev => {
+      if (ev.path) topPages[ev.path] = (topPages[ev.path] || 0) + 1;
+    });
+    const topPagesArr = Object.entries(topPages).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    if (topPagesArr.length) {
+      doc.setFontSize(14);
+      doc.text('Páginas más visitadas', 40, y);
+      y += 10;
+      // Buscar información extra para cada ruta: primer y último acceso
+      const pageInfo = {};
+      events.forEach(ev => {
+        if (ev.path) {
+          if (!pageInfo[ev.path]) pageInfo[ev.path] = { count: 0, first: ev.created_at, last: ev.created_at };
+          pageInfo[ev.path].count++;
+          if (ev.created_at < pageInfo[ev.path].first) pageInfo[ev.path].first = ev.created_at;
+          if (ev.created_at > pageInfo[ev.path].last) pageInfo[ev.path].last = ev.created_at;
+        }
+      });
+      const topPagesFullArr = Object.entries(pageInfo)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 10)
+        .map(([ruta, info]) => [ruta, info.count, info.first, info.last]);
+      const tableOptions = {
+        head: [['Ruta', 'Visitas', 'Primer acceso', 'Último acceso']],
+        body: topPagesFullArr,
+        startY: y + 10,
+        margin: { left: 20, right: 20 },
+        styles: { fontSize: 10, cellWidth: 'auto' },
+        headStyles: { fillColor: [54, 162, 235] },
+        tableWidth: 'wrap',
+        theme: 'grid',
+        didDrawPage: (data) => { y = doc.lastAutoTable.finalY + 20; }
+      };
+      if (typeof window.jspdf.autoTable === 'function') {
+        window.jspdf.autoTable(doc, tableOptions);
+        y = doc.lastAutoTable.finalY + 20;
+      } else if (typeof doc.autoTable === 'function') {
+        doc.autoTable(tableOptions);
+        y = doc.lastAutoTable.finalY + 20;
+      }
+    }
+
+    // --- Elementos más clickeados ---
+    const topElements = {};
+    events.forEach(ev => {
+      if (ev.event_type === 'click' && ev.element) topElements[ev.element] = (topElements[ev.element] || 0) + 1;
+    });
+    const topElementsArr = Object.entries(topElements).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    if (topElementsArr.length) {
+      doc.setFontSize(14);
+      doc.text('Elementos más clickeados', 40, y);
+      y += 10;
+      // Buscar información extra para cada elemento: primer y último click
+      const elementInfo = {};
+      events.forEach(ev => {
+        if (ev.event_type === 'click' && ev.element) {
+          if (!elementInfo[ev.element]) elementInfo[ev.element] = { count: 0, first: ev.created_at, last: ev.created_at };
+          elementInfo[ev.element].count++;
+          if (ev.created_at < elementInfo[ev.element].first) elementInfo[ev.element].first = ev.created_at;
+          if (ev.created_at > elementInfo[ev.element].last) elementInfo[ev.element].last = ev.created_at;
+        }
+      });
+      const topElementsFullArr = Object.entries(elementInfo)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 10)
+        .map(([el, info]) => [el, info.count, info.first, info.last]);
+      const tableOptions = {
+        head: [['Elemento', 'Clicks', 'Primer click', 'Último click']],
+        body: topElementsFullArr,
+        startY: y + 10,
+        margin: { left: 20, right: 20 },
+        styles: { fontSize: 10, cellWidth: 'auto' },
+        headStyles: { fillColor: [255, 99, 132] },
+        tableWidth: 'wrap',
+        theme: 'grid',
+        didDrawPage: (data) => { y = doc.lastAutoTable.finalY + 20; }
+      };
+      if (typeof window.jspdf.autoTable === 'function') {
+        window.jspdf.autoTable(doc, tableOptions);
+        y = doc.lastAutoTable.finalY + 20;
+      } else if (typeof doc.autoTable === 'function') {
+        doc.autoTable(tableOptions);
+        y = doc.lastAutoTable.finalY + 20;
+      }
+    }
+
+    // --- Resoluciones más usadas ---
+    const topRes = {};
+    events.forEach(ev => {
+      if (ev.metadata && ev.metadata.screen && ev.metadata.screen.w && ev.metadata.screen.h) {
+        const res = `${ev.metadata.screen.w}x${ev.metadata.screen.h}`;
+        topRes[res] = (topRes[res] || 0) + 1;
+      }
+    });
+    const topResArr = Object.entries(topRes).sort((a, b) => b[1] - a[1]).slice(0, 10);
+    if (topResArr.length) {
+      doc.setFontSize(14);
+      doc.text('Resoluciones más usadas', 40, y);
+      y += 10;
+      // Buscar información extra para cada resolución: cantidad de usuarios únicos
+      const resInfo = {};
+      events.forEach(ev => {
+        if (ev.metadata && ev.metadata.screen && ev.metadata.screen.w && ev.metadata.screen.h) {
+          const res = `${ev.metadata.screen.w}x${ev.metadata.screen.h}`;
+          if (!resInfo[res]) resInfo[res] = { count: 0, users: new Set() };
+          resInfo[res].count++;
+          if (ev.session_id) resInfo[res].users.add(ev.session_id);
+        }
+      });
+      const topResFullArr = Object.entries(resInfo)
+        .sort((a, b) => b[1].count - a[1].count)
+        .slice(0, 10)
+        .map(([res, info]) => [res, info.count, info.users.size]);
+      const tableOptions = {
+        head: [['Resolución', 'Veces', 'Usuarios únicos']],
+        body: topResFullArr,
+        startY: y + 10,
+        margin: { left: 20, right: 20 },
+        styles: { fontSize: 10, cellWidth: 'auto' },
+        headStyles: { fillColor: [75, 192, 192] },
+        tableWidth: 'wrap',
+        theme: 'grid',
+        didDrawPage: (data) => { y = doc.lastAutoTable.finalY + 20; }
+      };
+      if (typeof window.jspdf.autoTable === 'function') {
+        window.jspdf.autoTable(doc, tableOptions);
+        y = doc.lastAutoTable.finalY + 20;
+      } else if (typeof doc.autoTable === 'function') {
+        doc.autoTable(tableOptions);
+        y = doc.lastAutoTable.finalY + 20;
+      }
+    }
+    // Nueva hoja para tabla
+    doc.addPage();
+    doc.setFontSize(16);
+    doc.text('Datos completos de eventos', 40, 40);
+    // Preparar columnas y filas para autoTable
+    const columns = [
+      { header: 'ID', dataKey: 'id' },
+      { header: 'Tipo', dataKey: 'event_type' },
+      { header: 'Ruta', dataKey: 'path' },
+      { header: 'Elemento', dataKey: 'element' },
+      { header: 'País', dataKey: 'country' },
+      { header: 'Referrer', dataKey: 'referrer' },
+      { header: 'IP', dataKey: 'ip' },
+      { header: 'Fecha', dataKey: 'created_at' }
+    ];
+    const rows = events.map(ev => ({
+      id: ev.id,
+      event_type: ev.event_type,
+      path: ev.path,
+      element: ev.element,
+      country: ev.country || (ev.metadata && (ev.metadata.country_name || ev.metadata.country)) || '',
+      referrer: ev.referrer,
+      ip: ev.ip,
+      created_at: (ev.created_at && ev.created_at.length > 19) ? ev.created_at.substring(0, 19) : ev.created_at
+    }));
+    // Usar autoTable
+    const autoTableOptions = {
+      head: [columns.map(col => col.header)],
+      body: rows.map(row => columns.map(col => row[col.dataKey] || '')),
+      startY: 60,
+      margin: { left: 20, right: 20 },
+      styles: { fontSize: 8, cellWidth: 'auto' },
+      headStyles: { fillColor: [124, 58, 237] },
+      tableWidth: 'wrap',
+      theme: 'grid'
+    };
+    if (typeof window.jspdf.autoTable === 'function') {
+      window.jspdf.autoTable(doc, autoTableOptions);
+    } else if (typeof doc.autoTable === 'function') {
+      doc.autoTable(autoTableOptions);
+    } else {
+      alert('No se pudo cargar autoTable para jsPDF');
+      return;
+    }
+    // Descargar PDF
+    doc.save('eventos_completos.pdf');
   });
   document.getElementById('export-stats-csv')?.addEventListener('click', () => {
     const filters = getFilters();

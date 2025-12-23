@@ -394,6 +394,7 @@
         <li>Servir mediante Apache/Nginx</li>
       </ol>
 
+
       <h2 id="enrutamiento">5. Enrutamiento (Router)</h2>
       <p>Archivo: <code>src/core/router.php</code></p>
       <p>Estructura:</p>
@@ -401,6 +402,120 @@
         <li>Arrays de rutas GET/POST públicas</li>
         <li>Arrays de rutas GET/POST admin</li>
         <li>Mapeo: <code>path => ['controller' => X, 'method' => Y]</code></li>
+      </ul>
+
+      <h3 style="margin-top:2rem; color:#7c3aed;">Listado de Endpoints</h3>
+      <p>Todos los endpoints (rutas) disponibles en la aplicación, agrupados por tipo:</p>
+      <h4>🔒 Endpoints Admin (GET)</h4>
+      <ul>
+        <li>/admin</li>
+        <li>/admin/dashboard</li>
+        <li>/admin/perfil</li>
+        <li>/admin/usuarios</li>
+        <li>/admin/articulos</li>
+        <li>/admin/productos</li>
+        <li>/admin/categorias</li>
+        <li>/admin/configuraciones</li>
+        <li>/admin/testimonios</li>
+        <li>/admin/contacto</li>
+        <li>/admin/cupones</li>
+        <li>/admin/pedidos</li>
+      </ul>
+      <h4>🔒 Endpoints Admin (AJAX/Parciales GET)</h4>
+      <ul>
+        <li>/admin/usuarios/editar-form</li>
+        <li>/admin/articulos/editar-form</li>
+        <li>/admin/productos/editar-form</li>
+        <li>/admin/categorias/editar-form</li>
+        <li>/admin/configuraciones/editar-form</li>
+        <li>/admin/testimonios/editar-form</li>
+        <li>/admin/contacto/editar-form</li>
+        <li>/admin/cupones/editar-form</li>
+        <li>/admin/pedidos/editar-form</li>
+        <li>/admin/pedidos/factura</li>
+        <li>/admin/dashboard/events</li>
+        <li>/admin/dashboard/data</li>
+        <li>/admin/analytics/archive</li>
+        <li>/admin/analytics/reports</li>
+        <li>/admin/analytics/current-month</li>
+        <li>/admin/analytics/counts</li>
+        <li>/admin/analytics/export-recent</li>
+      </ul>
+      <h4>🔒 Endpoints Admin (POST)</h4>
+      <ul>
+        <li>/admin/usuarios/crear</li>
+        <li>/admin/usuarios/editar</li>
+        <li>/admin/usuarios/delete</li>
+        <li>/admin/articulos/crear</li>
+        <li>/admin/articulos/editar</li>
+        <li>/admin/articulos/delete</li>
+        <li>/admin/productos/crear</li>
+        <li>/admin/productos/editar</li>
+        <li>/admin/productos/delete</li>
+        <li>/admin/categorias/crear</li>
+        <li>/admin/categorias/editar</li>
+        <li>/admin/categorias/delete</li>
+        <li>/admin/configuraciones/crear</li>
+        <li>/admin/configuraciones/editar</li>
+        <li>/admin/configuraciones/delete</li>
+        <li>/admin/testimonios/crear</li>
+        <li>/admin/testimonios/editar</li>
+        <li>/admin/testimonios/delete</li>
+        <li>/admin/contacto/crear</li>
+        <li>/admin/contacto/editar</li>
+        <li>/admin/contacto/delete</li>
+        <li>/admin/cupones/crear</li>
+        <li>/admin/cupones/editar</li>
+        <li>/admin/cupones/delete</li>
+        <li>/admin/pedidos/editar</li>
+        <li>/admin/perfil-actualizar</li>
+      </ul>
+      <h4>🔒 Endpoints Analytics (POST)</h4>
+      <ul>
+        <li>/analytics/collect</li>
+      </ul>
+      <h4>🔒 Endpoints Vendedor (GET)</h4>
+      <ul>
+        <li>/vendor</li>
+        <li>/vendor/dashboard</li>
+        <li>/vendor/productos</li>
+        <li>/vendor/ordenes</li>
+        <li>/vendor/perfil</li>
+      </ul>
+      <h4>🔒 Endpoints Vendedor (POST)</h4>
+      <ul>
+        <li>/vendor/perfil-actualizar</li>
+      </ul>
+      <h4>🔓 Endpoints Públicos (GET)</h4>
+      <ul>
+        <li>/</li>
+        <li>/login</li>
+        <li>/register</li>
+        <li>/logout</li>
+        <li>/cart</li>
+        <li>/checkout</li>
+        <li>/orders</li>
+        <li>/orders/detail</li>
+        <li>/orders/invoice</li>
+        <li>/track</li>
+        <li>/sitemap.xml</li>
+        <li>/productos</li>
+        <li>/wishlist</li>
+        <li>/producto?id=</li>
+        <li>/product?id=</li>
+        <li>/articulo?id=</li>
+        <li>/product/{id}</li>
+        <li>/articulo/{id}</li>
+      </ul>
+      <h4>🔓 Endpoints Públicos (POST)</h4>
+      <ul>
+        <li>/cart/add</li>
+        <li>/cart/update</li>
+        <li>/cart/remove</li>
+        <li>/checkout/place</li>
+        <li>/wishlist/toggle</li>
+        <li>/wishlist/get-ids</li>
+        <li>/reviews/add</li>
       </ul>
 
       <h2 id="controladores">6. Controladores y Flujos</h2>
@@ -1307,10 +1422,20 @@ Home/Artículo
   → Renderiza carrusel/galería con BASE_URL/uploads
       </code></pre>
 
+
       <h2 id="analitica">12. Analítica y Métricas</h2>
       <p>Controller: <code>src/controllers/AnalyticsController.php</code></p>
       <p>Cliente: <code>public/js/analytics.js</code></p>
       <p>Métricas: pageview, clicks, add-to-cart, purchase</p>
+
+      <h4 style="margin-top:1.5rem; color:#10b981;">Optimización: Envío batch de eventos (2025-12)</h4>
+      <ul>
+        <li>Los eventos de analítica (clicks, pageviews, heartbeat, etc.) ahora se almacenan en un buffer local en el navegador.</li>
+        <li>Cada 30 segundos, o al cerrar la página, todos los eventos pendientes se envían juntos al endpoint <code>/analytics/collect</code> en un solo request.</li>
+        <li>Esto reduce la cantidad de requests y el espacio ocupado en la base de datos, haciendo el sistema más eficiente.</li>
+        <li>La lógica está implementada en <code>public/js/analytics.js</code> usando un array buffer y <code>setTimeout</code> para el envío periódico.</li>
+        <li>En caso de cierre de pestaña, se fuerza el envío inmediato usando <code>navigator.sendBeacon</code> si está disponible.</li>
+      </ul>
 
       <h3 id="analitica-stats">12.1 Dashboard Admin — Top Stats Cards</h3>
       <p>Vista: <code>src/views/admin/dashboard.php</code> (bloque .analytics-top-stats)</p>

@@ -36,6 +36,7 @@ class AdminController
 
     public function dashboard(): void
     {
+        // Vista normal, no API_MODE
         require_once __DIR__ . '/../core/auth.php'; 
         $userCount    = $this->conn->query("SELECT COUNT(*) FROM users")->fetch_row()[0];
         $productCount = $this->conn->query("SELECT COUNT(*) FROM products")->fetch_row()[0];
@@ -136,6 +137,7 @@ class AdminController
 
     public function users(): void
     {
+        if (($_GET['ajax'] ?? '') === '1') define('API_MODE', true);
         require_once __DIR__ . '/../core/auth.php'; 
         $view    = $_GET['view'] ?? 'table';
         $msg     = $_GET['msg']  ?? '';
@@ -167,8 +169,12 @@ class AdminController
 
             case 'table':
             default:
+                $selectFields = 'id, nombre, email, role, created_at';
+                if (strtolower($_SESSION['role'] ?? '') === 'dueno' || strtolower($_SESSION['role'] ?? '') === 'owner') {
+                    $selectFields .= ', api_key';
+                }
                 $users = $this->conn->query("
-                    SELECT id, nombre, email, role, created_at
+                    SELECT $selectFields
                     FROM users
                     ORDER BY created_at DESC
                 ");
@@ -186,7 +192,8 @@ class AdminController
 
     public function userCreate(): void
     {
-        require_once __DIR__ . '/../core/auth.php'; 
+        if (($_GET['ajax'] ?? '') === '1') define('API_MODE', true);
+        require_once __DIR__ . '/../core/auth.php';
         require_once __DIR__ . '/../core/csrf.php';
         csrf_require();
         try {
@@ -248,7 +255,8 @@ class AdminController
 
     public function userEdit(): void
     {
-        require_once __DIR__ . '/../core/auth.php'; 
+        if (($_GET['ajax'] ?? '') === '1') define('API_MODE', true);
+        require_once __DIR__ . '/../core/auth.php';
         require_once __DIR__ . '/../core/csrf.php';
         csrf_require();
         try {
@@ -358,7 +366,8 @@ class AdminController
     }
     public function userDelete(): void
     {
-        require_once __DIR__ . '/../core/auth.php'; 
+        if (($_GET['ajax'] ?? '') === '1') define('API_MODE', true);
+        require_once __DIR__ . '/../core/auth.php';
         require_once __DIR__ . '/../core/csrf.php';
         csrf_require();
         try {

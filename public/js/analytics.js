@@ -67,6 +67,33 @@
     return { country: null, country_name: null };
   }
 
+  // --- Batch analytics ---
+  const analyticsBuffer = [];
+  let analyticsTimer = null;
+  const ANALYTICS_BATCH_INTERVAL = 30000; // 30s
+
+  function flushAnalyticsBuffer(isUnload = false) {
+    if (!hasConsent() || analyticsBuffer.length === 0) return;
+    const url = (typeof BASE_URL !== 'undefined' ? BASE_URL : '/') + 'analytics/collect';
+    const events = analyticsBuffer.splice(0, analyticsBuffer.length);
+    try {
+      const body = JSON.stringify(events.length === 1 ? events[0] : events);
+      if (navigator.sendBeacon && isUnload) {
+        const blob = new Blob([body], { type: 'application/json' });
+        navigator.sendBeacon(url, blob);
+      } else {
+        fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
+      }
+    } catch (e) {
+      console.error('Analytics batch send failed', e);
+    }
+  }
+
+  function scheduleAnalyticsFlush() {
+    if (analyticsTimer) clearTimeout(analyticsTimer);
+    analyticsTimer = setTimeout(() => flushAnalyticsBuffer(false), ANALYTICS_BATCH_INTERVAL);
+  }
+
   function sendEvent(eventType, extra = {}) {
     if (!hasConsent()) return;
     const payload = buildPayload(eventType, extra);
@@ -78,18 +105,8 @@
         payload.metadata = Object.assign({}, payload.metadata, { country: cc.country, country_name: cc.country_name });
       }
     } catch (e) {}
-    const url = (typeof BASE_URL !== 'undefined' ? BASE_URL : '/') + 'analytics/collect';
-    try {
-      const body = JSON.stringify(payload);
-      if (navigator.sendBeacon) {
-        const blob = new Blob([body], { type: 'application/json' });
-        navigator.sendBeacon(url, blob);
-      } else {
-        fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body });
-      }
-    } catch (e) {
-      console.error('Analytics send failed', e);
-    }
+    analyticsBuffer.push(payload);
+    scheduleAnalyticsFlush();
   }
 
   function initCookieBanner() {
@@ -175,23 +192,8 @@
 
     window.addEventListener('beforeunload', function (e) {
       const totalSec = Math.round((Date.now() - loadedAt) / 1000);
-      const payload = { seconds: totalSec };
-      const url = (typeof BASE_URL !== 'undefined' ? BASE_URL : '/') + 'analytics/collect';
-      try {
-        const body = JSON.stringify(buildPayload('time_on_page', payload));
-        if (navigator.sendBeacon) {
-          const blob = new Blob([body], { type: 'application/json' });
-          navigator.sendBeacon(url, blob);
-        } else {
-          // best effort synchronous fetch blocked in many browsers, but try
-          var xhr = new XMLHttpRequest();
-          xhr.open('POST', url, false);
-          xhr.setRequestHeader('Content-Type', 'application/json');
-          xhr.send(body);
-        }
-      } catch (err) {
-        console.warn('Failed to send time_on_page', err);
-      }
+      sendEvent('time_on_page', { seconds: totalSec });
+      flushAnalyticsBuffer(true);
       clearInterval(interval);
     });
   }

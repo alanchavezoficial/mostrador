@@ -1,11 +1,74 @@
+
 <!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <!-- src/views/admin/dashboard.php -->
+<?php
+require_once __DIR__ . '/../../core/auth.php';
+require_once __DIR__ . '/../../core/db.php';
+$conn = db();
+if (isset($_SESSION['user_id'])) {
+  $uid = (int)$_SESSION['user_id'];
+  $api_key = null;
+  $res = $conn->query("SELECT api_key FROM users WHERE id = $uid LIMIT 1");
+  $row = $res ? $res->fetch_assoc() : null;
+  if (!$row || !isset($row['api_key']) || !preg_match('/^[a-f0-9]{64}$/', $row['api_key'])) {
+    if (!function_exists('generate_api_key')) {
+      function generate_api_key() { return bin2hex(random_bytes(32)); }
+    }
+    $api_key = generate_api_key();
+    $stmt = $conn->prepare("UPDATE users SET api_key = ? WHERE id = ?");
+    $stmt->bind_param('si', $api_key, $uid);
+    $stmt->execute();
+  } else {
+    $api_key = $row['api_key'];
+  }
+  if (preg_match('/^[a-f0-9]{64}$/', $api_key)) {
+    echo "<script>window.ADMIN_API_KEY = '" . addslashes($api_key) . "';</script>\n";
+  } else {
+    echo "<script>console.error('No se pudo generar una API key válida para el usuario actual'); window.ADMIN_API_KEY = '';</script>\n";
+  }
+}
+?>
+<script>
+  window.BASE_URL = <?= json_encode(defined('BASE_URL') ? BASE_URL : '/') ?>;
+</script>
+<!-- ...existing code... -->
+<script src="/public/js/admin/admin-dashboard.js"></script>
+<script>
+  // Script para el botón de descarga, ahora al final
+  document.addEventListener('DOMContentLoaded', function() {
+    var btn = document.getElementById('export-csv');
+    if (btn) {
+      btn.addEventListener('click', function() {
+        console.log('PRUEBA: click detectado en export-csv');
+        // window.location.href = (window.BASE_URL || '/') + 'admin/dashboard/events?format=csv&limit=10000';
+      });
+    }
+  });
+</script>
+</body>
 
 <?php
-
-require_once __DIR__ . '/../../core/auth.php'; 
-
+require_once __DIR__ . '/../../core/auth.php';
+require_once __DIR__ . '/../../core/db.php';
+$conn = db();
+if (isset($_SESSION['user_id'])) {
+  $uid = $_SESSION['user_id'];
+  $res = $conn->query("SELECT api_key FROM users WHERE id = $uid LIMIT 1");
+  $row = $res ? $res->fetch_assoc() : null;
+  if (!$row || !$row['api_key']) {
+    if (!function_exists('generate_api_key')) {
+      eval('function generate_api_key() { return bin2hex(random_bytes(32)); }');
+    }
+    $api_key = generate_api_key();
+    $stmt = $conn->prepare("UPDATE users SET api_key = ? WHERE id = ?");
+    $stmt->bind_param('si', $api_key, $uid);
+    $stmt->execute();
+  } else {
+    $api_key = $row['api_key'];
+  }
+  echo "<script>window.ADMIN_API_KEY = '" . addslashes($api_key) . "';</script>";
+}
 ?>
 
 <h1>Panel principal</h1>
@@ -78,17 +141,18 @@ require_once __DIR__ . '/../../core/auth.php';
 <p>Estadísticas y visualizaciones. Usa el filtro para seleccionar fechas o agrupar por hora/día.</p>
 
 <div class="analytics-controls">
-  <label>Desde: <input type="date" id="filter-from"></label>
-  <label>Hasta: <input type="date" id="filter-to"></label>
-  <label>Agrupar: 
-    <select id="filter-group">
-      <option value="day">Día</option>
-      <option value="hour">Hora</option>
-    </select>
-  </label>
-  <button id="filter-apply">Aplicar</button>
-  <button id="export-csv">Export CSV (events)</button>
-  <button id="export-stats-csv">Export CSV (stats)</button>
+    <label>Desde: <input type="date" id="filter-from"></label>
+    <label>Hasta: <input type="date" id="filter-to"></label>
+    <label>Agrupar: 
+      <select id="filter-group">
+        <option value="day">Día</option>
+        <option value="hour">Hora</option>
+      </select>
+    </label>
+    <button id="filter-apply">Aplicar</button>
+    <!-- Controles de analytics simplificados -->
+    <p>Si necesitas analizar todos los eventos con el máximo detalle (incluyendo país, IP, metadata, etc.), puedes descargar el archivo completo en CSV:</p>
+    <!-- Eliminado: el botón de descarga estará solo abajo -->
 </div>
 
 <div class="dashboard-charts">
@@ -130,53 +194,8 @@ require_once __DIR__ . '/../../core/auth.php';
 
 <hr/>
 
-<h2>Últimos eventos</h2>
-<div class="table-responsive">
-  <table class="table">
-    <thead>
-      <tr>
-          <th>País</th>
-        <th>ID</th>
-        <th>Tipo</th>
-        <th>Session</th>
-        <th>Path</th>
-        <th>Element</th>
-        <th>Referrer</th>
-        <th>IP</th>
-        <th>Metadata</th>
-        <th>Fecha</th>
-      </tr>
-    </thead>
-    <tbody id="analytics-tbody"></tbody>
-  </table>
-</div>
-
-<!-- Modal for viewing full event details -->
-<div id="event-modal" class="modal hidden" aria-hidden="true">
-  <div class="modal-backdrop"></div>
-  <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <header class="modal-header">
-      <h3 id="modal-title">Detalle del evento</h3>
-      <button id="modal-close" class="modal-close" aria-label="Cerrar">×</button>
-    </header>
-    <div class="modal-body">
-      <div class="modal-grid">
-        <div><strong>ID:</strong> <span id="ev-id"></span></div>
-        <div><strong>Tipo:</strong> <span id="ev-type"></span></div>
-        <div><strong>País:</strong> <span id="ev-country"></span></div>
-        <div><strong>Session:</strong> <span id="ev-session"></span></div>
-        <div><strong>Path:</strong> <span id="ev-path"></span></div>
-        <div><strong>Elemento:</strong> <span id="ev-element"></span></div>
-        <div><strong>Referrer:</strong> <span id="ev-referrer"></span></div>
-        <div><strong>IP:</strong> <span id="ev-ip"></span></div>
-        <div><strong>Fecha:</strong> <span id="ev-date"></span></div>
-      </div>
-      <h4>Metadata</h4>
-      <pre id="ev-metadata" class="modal-metadata"></pre>
-    </div>
-    <footer class="modal-footer">
-      <button id="modal-copy" class="btn">Copiar metadata</button>
-      <button id="modal-close-2" class="btn btn-secondary">Cerrar</button>
-    </footer>
-  </div>
+<div class="card" style="margin:2rem 0 1rem 0; padding:1.5rem; background:rgba(124,58,237,0.07); border:1px solid #7c3aed22; border-radius:10px;">
+  <h2 style="margin:0 0 1rem 0;">Descargar eventos detallados</h2>
+  <p>Si necesitas analizar todos los eventos con el máximo detalle (incluyendo país, IP, metadata, etc.), puedes descargar el archivo completo en CSV:</p>
+  <button id="export-csv" class="btn btn-primary">Descargar CSV completo de eventos</button>
 </div>
