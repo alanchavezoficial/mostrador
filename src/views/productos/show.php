@@ -8,11 +8,11 @@ $page_js = 'cart.js';
     </div>
     <div class="div3" style="display:flex; flex-direction:column; gap:10px;">
         <?php $mainImage = $gallery[0]['image_path'] ?? $producto['imagen']; ?>
-        <img id="main-photo" src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($mainImage) ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>" style="width:100%; border-radius:12px; object-fit:cover;">
+        <img id="main-photo" src="<?= BASE_URL ?>public/uploads/<?= htmlspecialchars($mainImage) ?>" alt="<?= htmlspecialchars($producto['nombre']) ?>" style="width:100%; border-radius:12px; object-fit:cover;">
         <?php if (!empty($gallery)): ?>
             <div style="display:flex; gap:8px; flex-wrap:wrap;">
                 <?php foreach ($gallery as $img): ?>
-                    <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($img['image_path']) ?>" alt="<?= htmlspecialchars($img['alt_text'] ?? $producto['nombre']) ?>" style="width:72px; height:72px; object-fit:cover; border:1px solid #e5e7eb; border-radius:8px; cursor:pointer;" onclick="document.getElementById('main-photo').src=this.src;">
+                    <img src="<?= BASE_URL ?>public/uploads/<?= htmlspecialchars($img['image_path']) ?>" alt="<?= htmlspecialchars($img['alt_text'] ?? $producto['nombre']) ?>" style="width:72px; height:72px; object-fit:cover; border:1px solid #e5e7eb; border-radius:8px; cursor:pointer;" onclick="document.getElementById('main-photo').src=this.src;">
                 <?php endforeach; ?>
             </div>
         <?php endif; ?>
@@ -22,7 +22,7 @@ $page_js = 'cart.js';
         <?php if (!empty($avg['total_reviews'])): ?>
           <p>Rating: <?= number_format($avg['avg_rating'], 1) ?> ⭐ (<?= (int)$avg['total_reviews'] ?>)</p>
         <?php endif; ?>
-        <p><span>Precio:</span> $<?= number_format($producto['precio'], 2, ',', '.') ?></p>
+        <p><span>Precio:</span> $<?= number_format($producto['precio'] / 100, 2, ',', '.') ?></p>
         <p><span>Categoría:</span> <?= htmlspecialchars($producto['categoria_nombre'] ?? 'Sin categoría') ?></p>
         <p><span>Descripción:</span> <?= nl2br(htmlspecialchars($producto['descripcion'])) ?></p>
         <div class="div5" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:12px;">

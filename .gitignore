@@ -1,0 +1,28 @@
+.env
+config/.env
+# Uploads and generated reports
+/public/uploads/
+/public/uploads/analytics_reports/
+/public/uploads/analytics_reports/*
+# Archive logs
+public/uploads/analytics_reports/archive.log
+/storage/logs/analytics/
+/storage/logs/
+# Backup artifacts
+/backup/
+# Node and vendor
+node_modules/
+vendor/
+
+# Dev tools and tests
+/scripts/playwright/
+/playwright-report/
+/test-results/
+/screenshots/
+
+# OS files
+.DS_Store
+Thumbs.db
+# PHPStorm / VSCode
+.idea/
+.vscode/

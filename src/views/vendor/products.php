@@ -202,7 +202,7 @@ if (!isset($user) || $user['role'] !== 'vendedor') {
 <div class="vendor-products-container">
     <div class="products-header">
         <h2>📦 Mis Productos</h2>
-        <button class="btn-new-product" onclick="location.href='/mostrador/vendor/producto-crear'">+ Nuevo Producto</button>
+        <button class="btn-new-product" onclick="location.href='<?= BASE_URL ?>vendor/producto-crear'">+ Nuevo Producto</button>
     </div>
 
     <?php if (!empty($products)): ?>
@@ -240,7 +240,7 @@ if (!isset($user) || $user['role'] !== 'vendedor') {
                         </td>
                         <td class="product-name"><?php echo htmlspecialchars($product['name']); ?></td>
                         <td><?php echo htmlspecialchars($product['category_name'] ?? 'Sin categoría'); ?></td>
-                        <td class="product-price">$<?php echo number_format($product['price'], 2); ?></td>
+                        <td class="product-price">$<?php echo number_format($product['price'] / 100, 2, ',', '.'); ?></td>
                         <td>
                             <?php
                             $stock = $product['stock'] ?? 0;
@@ -264,8 +264,8 @@ if (!isset($user) || $user['role'] !== 'vendedor') {
                         </td>
                         <td>
                             <div class="product-actions">
-                                <a href="/mostrador/vendor/productos/<?php echo $product['id']; ?>/editar" class="btn-edit">Editar</a>
-                                <a href="/mostrador/productos/<?php echo $product['id']; ?>" class="btn-view" target="_blank">Ver</a>
+                                <a href="<?= BASE_URL ?>vendor/productos/<?php echo $product['id']; ?>/editar" class="btn-edit">Editar</a>
+                                <a href="<?= BASE_URL ?>product/<?php echo $product['id']; ?>" class="btn-view" target="_blank">Ver</a>
                                 <button class="btn-delete" onclick="deleteProduct(<?php echo $product['id']; ?>)">Eliminar</button>
                             </div>
                         </td>
@@ -278,7 +278,7 @@ if (!isset($user) || $user['role'] !== 'vendedor') {
             <div class="empty-state-icon">📭</div>
             <p>No tienes productos publicados aún.</p>
             <p style="margin-top: 10px;">
-                <button class="btn-new-product" onclick="location.href='/mostrador/vendor/producto-crear'" style="margin-top: 10px;">
+                <button class="btn-new-product" onclick="location.href='<?= BASE_URL ?>vendor/producto-crear'" style="margin-top: 10px;">
                     + Crear tu primer producto
                 </button>
             </p>
@@ -306,7 +306,7 @@ function filterTable() {
 function deleteProduct(productId) {
     if (confirm('¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.')) {
         // Aquí iría la llamada AJAX para eliminar
-        fetch(`/mostrador/vendor/productos/${productId}/eliminar`, {
+        fetch('<?= BASE_URL ?>vendor/productos/' + productId + '/eliminar', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

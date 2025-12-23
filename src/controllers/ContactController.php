@@ -96,7 +96,24 @@ class ContactController {
         $result = $this->update($id, $_POST);
 
         header('Content-Type: application/json');
-        echo json_encode($result);
+        
+        if ($result['success'] ?? false) {
+            // Obtener la tabla actualizada
+            $contacts = $this->getAll();
+            $data = ['contacts' => $contacts, 'message' => ''];
+            ob_start();
+            \View::renderPartial('contacto/table', $data);
+            $html = ob_get_clean();
+            
+            echo json_encode([
+                'success' => true,
+                'html' => $html
+            ]);
+        } else {
+            echo json_encode([
+                'error' => $result['error'] ?? 'Error desconocido'
+            ]);
+        }
     }
 
     public function contactDelete(): void {
@@ -110,7 +127,24 @@ class ContactController {
         $result = $this->delete($id);
 
         header('Content-Type: application/json');
-        echo json_encode($result);
+        
+        if ($result['success'] ?? false) {
+            // Obtener la tabla actualizada
+            $contacts = $this->getAll();
+            $data = ['contacts' => $contacts, 'message' => ''];
+            ob_start();
+            \View::renderPartial('contacto/table', $data);
+            $html = ob_get_clean();
+            
+            echo json_encode([
+                'success' => true,
+                'html' => $html
+            ]);
+        } else {
+            echo json_encode([
+                'error' => $result['error'] ?? 'Error desconocido'
+            ]);
+        }
     }
 
     public function getAll() {

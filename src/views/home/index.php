@@ -1,6 +1,7 @@
 <?php
 $page_css = 'index.css';
 $page_js  = 'cart.js';
+$body_class = 'home-landing';
 
 // Los controllers ya están cargados desde el router
 use App\Controllers\TestimonialController;
@@ -12,7 +13,7 @@ $contactController = new ContactController();
 include_once __DIR__ . '/../layouts/header.php';
 
 $carouselRes = $conn->query("
-  SELECT a.id, a.title, a.meta_description,
+  SELECT a.id, a.title, a.meta_description, a.product_id,
          (SELECT image_path FROM article_images ai WHERE ai.article_id = a.id AND ai.is_primary = 1 ORDER BY ai.id ASC LIMIT 1) AS image_path
   FROM articles a
   WHERE a.is_carousel = 1 AND a.is_visible = 1
@@ -25,21 +26,28 @@ $carouselRes = $conn->query("
     <?php if ($carouselRes && $carouselRes->num_rows): ?>
       <?php while ($a = $carouselRes->fetch_assoc()): ?>
         <?php
-          $bgImage = !empty($a['image_path']) ? BASE_URL . 'uploads/' . htmlspecialchars($a['image_path']) : null;
-          $bgStyle = $bgImage
-            ? "background: linear-gradient(135deg, rgba(0,0,0,0.45), rgba(0,0,0,0.45)), url('{$bgImage}') center/cover no-repeat;"
-            : 'background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);';
+          $bgImage = !empty($a['image_path']) ? BASE_URL . 'public/uploads/' . htmlspecialchars($a['image_path']) : null;
+          $slideClasses = 'slide' . ($bgImage ? ' slide--with-image' : ' slide--fallback');
+          $bgStyle = $bgImage ? "background-image: url('{$bgImage}');" : '';
+          // Enlace principal siempre al artículo
+          $articleUrl = BASE_URL . 'articulo/' . $a['id'];
+          $productUrl = $a['product_id'] ? BASE_URL . 'product/' . $a['product_id'] : null;
         ?>
-        <div class="slide" style="<?= $bgStyle ?>">
+        <div class="<?= $slideClasses ?>"<?= $bgStyle ? ' style="' . $bgStyle . '"' : '' ?>>
           <div class="slide-content">
             <h2><?= htmlspecialchars($a['title']) ?></h2>
             <p><?= htmlspecialchars($a['meta_description'] ?? '') ?></p>
-            <a class="slide-link" href="<?= BASE_URL ?>articulo/<?= $a['id'] ?>">Ver artículo</a>
+            <div class="slide-actions">
+              <a class="slide-link primary" href="<?= $articleUrl ?>">Ver artículo</a>
+              <?php if ($productUrl): ?>
+                <a class="slide-link secondary" href="<?= $productUrl ?>">Ver producto</a>
+              <?php endif; ?>
+            </div>
           </div>
         </div>
       <?php endwhile; ?>
     <?php else: ?>
-      <div class="slide" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+      <div class="slide slide--fallback">
         <div class="slide-content">
           <h2>Bienvenido a Props Fotográficos</h2>
           <p>Encuentra los mejores accesorios para tus sesiones</p>
@@ -53,13 +61,13 @@ $carouselRes = $conn->query("
 
 <!-- MENSAJES DE ERROR/SUCCESS -->
 <?php if (isset($_GET['error'])): ?>
-    <div style="background-color: #fee; color: #c33; padding: 12px 16px; margin: 12px 20px; border-radius: 4px; border-left: 4px solid #c33;">
+    <div class="alert-error" role="alert">
         ⚠️ <?= htmlspecialchars($_GET['error']) ?>
     </div>
 <?php endif; ?>
 
 <?php if (isset($_GET['success'])): ?>
-    <div style="background-color: #efe; color: #3c3; padding: 12px 16px; margin: 12px 20px; border-radius: 4px; border-left: 4px solid #3c3;">
+    <div class="alert-success" role="alert">
         ✅ <?= htmlspecialchars($_GET['success']) ?>
     </div>
 <?php endif; ?>
@@ -69,7 +77,7 @@ $carouselRes = $conn->query("
   <h2>Busca nuestros productos</h2>
   <form method="GET" action="<?= BASE_URL ?>productos" class="search-form">
     <input type="text" name="q" placeholder="Buscar productos, categorías..." class="search-input" aria-label="Buscar productos">
-    <button type="submit" class="search-btn">🔍 Buscar</button>
+    <button type="submit" class="btn btn-accent">🔍 Buscar</button>
   </form>
 </section>
 
@@ -92,7 +100,7 @@ $carouselRes = $conn->query("
     <?php endwhile; else: ?>
         <p>No hay categorías disponibles.</p>
     <?php endif; ?>
-    <a href="<?= BASE_URL ?>productos" class="category-card category-all">
+    <a href="<?= BASE_URL ?>productos" class="category-card">
       <div class="category-icon">🎯</div>
       <h3>Ver Todo</h3>
       <p>Explorar todas las categorías</p>
@@ -114,15 +122,15 @@ $carouselRes = $conn->query("
     ?>
         <a href="<?= BASE_URL ?>product/<?= $row['id'] ?>" class="offer-card">
           <div class="offer-badge">-<?= $descuento ?>%</div>
-          <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($row['imagen']) ?>" 
+          <img src="<?= BASE_URL ?>public/uploads/<?= htmlspecialchars($row['imagen']) ?>" 
                alt="<?= htmlspecialchars($row['nombre']) ?>"
                loading="lazy"
                class="offer-img">
           <div class="offer-content">
             <h3><?= htmlspecialchars($row['nombre']) ?></h3>
             <div class="price-section">
-              <span class="price-old">$<?= number_format($row['precio'], 2) ?></span>
-              <span class="price-new">$<?= number_format($row['oferta'], 2) ?></span>
+              <span class="price-old">$<?= number_format($row['precio'] / 100, 2, ',', '.') ?></span>
+              <span class="price-new">$<?= number_format($row['oferta'] / 100, 2, ',', '.') ?></span>
             </div>
             <button class="offer-btn">Ver Oferta</button>
           </div>
@@ -154,14 +162,14 @@ $carouselRes = $conn->query("
             </svg>
           </button>
           <a href="<?= BASE_URL ?>product/<?= $row['id'] ?>" class="card">
-            <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($row['imagen']) ?>" 
+            <img src="<?= BASE_URL ?>public/uploads/<?= htmlspecialchars($row['imagen']) ?>" 
                  alt="<?= htmlspecialchars($row['nombre']) ?>"
                  loading="lazy"
                  class="card-img">
             <div class="card-content">
               <h3><?= htmlspecialchars($row['nombre']) ?></h3>
               <p class="card-description"><?= htmlspecialchars($row['descripcion']) ?></p>
-              <span class="price">$<?= number_format($row['precio'], 2) ?></span>
+              <span class="price">$<?= number_format($row['precio'] / 100, 2, ',', '.') ?></span>
             </div>
           </a>
           <div class="card-actions">
@@ -224,7 +232,7 @@ $carouselRes = $conn->query("
         <a href="<?= BASE_URL ?>articulo/<?= $a['id'] ?>" class="card article-card" title="Leer: <?= htmlspecialchars($a['title']) ?>">
           <?php if (!empty($a['image_path'])): ?>
             <div class="article-thumb">
-              <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($a['image_path']) ?>" alt="<?= htmlspecialchars($a['title']) ?>" loading="lazy">
+              <img src="<?= BASE_URL ?>public/uploads/<?= htmlspecialchars($a['image_path']) ?>" alt="<?= htmlspecialchars($a['title']) ?>" loading="lazy">
             </div>
           <?php endif; ?>
           <div class="article-badge">📄 Artículo</div>

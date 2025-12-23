@@ -26,14 +26,14 @@
       <div class="article-gallery">
         <?php foreach ($images as $img): ?>
           <figure class="article-image <?= $img['is_primary'] ? 'primary' : '' ?>">
-            <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($img['image_path']) ?>" alt="<?= htmlspecialchars($article['title']) ?>" loading="lazy">
+            <img src="<?= BASE_URL ?>public/uploads/<?= htmlspecialchars($img['image_path']) ?>" alt="<?= htmlspecialchars($article['title']) ?>" loading="lazy">
           </figure>
         <?php endforeach; ?>
       </div>
     <?php endif; ?>
     
-    <div class="contenido">
-      <?= nl2br(htmlspecialchars($article['content'])) ?>
+    <div class="contenido rich-text">
+      <?= $article['content'] ?>
     </div>
 
     <!-- Share Buttons -->
@@ -65,11 +65,11 @@
     <div class="productos-relacionados">
       <?php foreach ($relatedProducts as $p): ?>
         <a href="<?= BASE_URL ?>product/<?= $p['id'] ?>" class="card">
-          <img src="<?= BASE_URL ?>public/img/<?= htmlspecialchars($p['imagen']) ?>"
+          <img src="<?= BASE_URL ?>public/uploads/<?= htmlspecialchars($p['imagen']) ?>"
                alt="<?= htmlspecialchars($p['nombre']) ?>"
                class="card-img">
           <div class="card-content">
-            <h4><?= htmlspecialchars($p['nombre']) ?></h4>
+            <h3><?= htmlspecialchars($p['nombre']) ?></h3>
             <p><?= htmlspecialchars($p['descripcion']) ?></p>
           </div>
         </a>

@@ -20,9 +20,11 @@
     font-size: 0.9em;
 }
 
+
 .login-links a {
     color: var(--color_primario);
     text-decoration: underline;
+    transition: color 0.2s;
 }
 
 .login-links a:hover {

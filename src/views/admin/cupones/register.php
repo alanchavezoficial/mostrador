@@ -54,4 +54,5 @@
   </div>
 
   <button type="submit" class="btn-primary">💾 Guardar cupón</button>
+  <button type="submit" class="btn btn-primary">💾 Guardar cupón</button>
 </form>

@@ -1,6 +1,6 @@
 <IfModule mod_rewrite.c>
 	RewriteEngine On
-	RewriteBase /mostrador/
+	RewriteBase "/"
 
 	# No reescribir si el recurso existe (archivo o carpeta)
 	RewriteCond %{REQUEST_FILENAME} !-f

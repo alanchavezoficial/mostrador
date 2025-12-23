@@ -2,7 +2,7 @@
   RewriteEngine On
 
   # Ajusta esto según la carpeta donde vivas tu proyecto
-  RewriteBase /mostrador/
+  RewriteBase /
 
   # Si no existe el archivo o directorio, redirige todo a index.php
   RewriteCond %{REQUEST_FILENAME} !-f

@@ -17,7 +17,13 @@ document.addEventListener('click', async e => {
       modal = document.createElement('div');
       modal.id = 'float-form';
       modal.className = 'modal-overlay';
-      document.querySelector('main')?.insertAdjacentElement('afterend', modal);
+      
+      const mainEl = document.querySelector('main');
+      if (mainEl) {
+        mainEl.insertAdjacentElement('afterend', modal);
+      } else {
+        document.body.appendChild(modal);
+      }
     }
 
     modal.innerHTML = `

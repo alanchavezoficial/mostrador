@@ -66,6 +66,6 @@
   </div>
 
   <div class="form-actions">
-    <button type="submit" class="btn-primary">💾 Guardar cambios</button>
+    <button type="submit" class="btn btn-primary">💾 Guardar cambios</button>
   </div>
 </form>

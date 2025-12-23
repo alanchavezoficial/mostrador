@@ -5,7 +5,7 @@ $page_js   = 'cart.js';
 ?>
 <section class="cart-page">
   <h1>Catálogo</h1>
-  <form method="GET" action="<?= BASE_URL ?>productos" style="display:grid; gap:8px; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); background:#fff; padding:12px; border:1px solid #e5e7eb; border-radius:12px; margin-bottom:16px;">
+  <form method="GET" action="<?= BASE_URL ?>productos" style="display:grid; gap:8px; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); background:var(--color_fondo); padding:12px; border:1px solid var(--border-muted); border-radius:12px; margin-bottom:16px;">
     <input type="text" name="q" placeholder="Buscar" value="<?= htmlspecialchars($_GET['q'] ?? '') ?>" class="qty-input" style="width:100%;">
     <select name="categoria" class="qty-input" style="width:100%;">
       <option value="">Todas las categorías</option>
@@ -42,7 +42,7 @@ $page_js   = 'cart.js';
           </button>
 
           <a href="<?= BASE_URL ?>product/<?= $p['id'] ?>" class="card">
-            <img src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($p['imagen']) ?>" 
+            <img src="<?= BASE_URL ?>public/uploads/<?= htmlspecialchars($p['imagen']) ?>" 
                  alt="<?= htmlspecialchars($p['nombre']) ?>"
                  loading="lazy"
                  class="card-img">
@@ -51,7 +51,7 @@ $page_js   = 'cart.js';
               <?php if (!empty($p['categoria_nombre'])): ?>
                 <small><?= htmlspecialchars($p['categoria_nombre']) ?></small>
               <?php endif; ?>
-              <span class="price">$<?= number_format($p['precio'], 2) ?></span>
+              <span class="price">$<?= number_format($p['precio'] / 100, 2, ',', '.') ?></span>
             </div>
           </a>
           <div class="card-actions">

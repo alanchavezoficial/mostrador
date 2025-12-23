@@ -1,0 +1,335 @@
+/**
+ * Skeleton Loaders - Componentes de Carga
+ * Mejora la percepción de velocidad durante la carga de contenido
+ */
+
+/* ============================================
+   BASE SKELETON
+   ============================================ */
+
+
+.skeleton {
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color_fondo), var(--color_texto) 12%) 0%,
+        color-mix(in srgb, var(--color_fondo), var(--color_texto) 18%) 20%,
+        color-mix(in srgb, var(--color_fondo), var(--color_texto) 12%) 40%,
+        color-mix(in srgb, var(--color_fondo), var(--color_texto) 12%) 100%
+    );
+    background-size: 200% 100%;
+    animation: skeleton-loading 1.5s ease-in-out infinite;
+    border-radius: 4px;
+    display: inline-block;
+    position: relative;
+    overflow: hidden;
+}
+
+
+/* Dark mode skeleton */
+[data-theme="dark"] .skeleton,
+.dark-mode .skeleton {
+    background: linear-gradient(
+        90deg,
+        color-mix(in srgb, var(--color_header), transparent 5%) 0%,
+        color-mix(in srgb, var(--color_header), transparent 0%) 20%,
+        color-mix(in srgb, var(--color_header), transparent 5%) 40%,
+        color-mix(in srgb, var(--color_header), transparent 5%) 100%
+    );
+}
+
+@keyframes skeleton-loading {
+    0% {
+        background-position: 200% 0;
+    }
+    100% {
+        background-position: -200% 0;
+    }
+}
+
+/* ============================================
+   SKELETON VARIANTS
+   ============================================ */
+
+/* Texto */
+.skeleton-text {
+    width: 100%;
+    height: 1em;
+    margin-bottom: 0.5em;
+}
+
+.skeleton-text-short {
+    width: 60%;
+}
+
+.skeleton-text-medium {
+    width: 80%;
+}
+
+.skeleton-text-long {
+    width: 100%;
+}
+
+/* Título */
+.skeleton-title {
+    width: 50%;
+    height: 2em;
+    margin-bottom: 0.5em;
+}
+
+/* Imagen */
+.skeleton-image {
+    width: 100%;
+    padding-bottom: 75%; /* Aspect ratio 4:3 */
+    height: 0;
+}
+
+.skeleton-image-square {
+    padding-bottom: 100%; /* Aspect ratio 1:1 */
+}
+
+.skeleton-image-wide {
+    padding-bottom: 56.25%; /* Aspect ratio 16:9 */
+}
+
+/* Avatar circular */
+.skeleton-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+}
+
+.skeleton-avatar-large {
+    width: 80px;
+    height: 80px;
+}
+
+/* Botón */
+.skeleton-button {
+    width: 120px;
+    height: 40px;
+    border-radius: 4px;
+}
+
+/* ============================================
+   SKELETON CARDS
+   ============================================ */
+
+.skeleton-card {
+    padding: 1rem;
+    border: 1px solid var(--border-muted);
+    border-radius: 8px;
+    background: var(--color_fondo);
+}
+
+[data-theme="dark"] .skeleton-card,
+.dark-mode .skeleton-card {
+    border-color: color-mix(in srgb, var(--color_texto), transparent 80%);
+    background: color-mix(in srgb, var(--color_header), transparent 10%);
+}
+
+/* Card de producto */
+.skeleton-product-card {
+    width: 100%;
+}
+
+.skeleton-product-card .skeleton-image {
+    margin-bottom: 1rem;
+}
+
+.skeleton-product-card .skeleton-title {
+    width: 80%;
+    height: 1.5em;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-product-card .skeleton-text {
+    width: 60%;
+    height: 1em;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-product-card .skeleton-button {
+    margin-top: 1rem;
+}
+
+/* Card de artículo */
+.skeleton-article-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-muted);
+    border-radius: 8px;
+}
+
+.skeleton-article-card .skeleton-image {
+    width: 150px;
+    flex-shrink: 0;
+}
+
+.skeleton-article-card .skeleton-content {
+    flex: 1;
+}
+
+/* ============================================
+   SKELETON LIST
+   ============================================ */
+
+.skeleton-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.skeleton-list-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.skeleton-list-item:last-child {
+    border-bottom: none;
+}
+
+/* ============================================
+   SKELETON TABLE
+   ============================================ */
+
+.skeleton-table {
+    width: 100%;
+}
+
+.skeleton-table-row {
+    display: flex;
+    gap: 1rem;
+    padding: 1rem;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.skeleton-table-cell {
+    flex: 1;
+    height: 1.5em;
+}
+
+/* ============================================
+   SKELETON FORM
+   ============================================ */
+
+.skeleton-form-group {
+    margin-bottom: 1.5rem;
+}
+
+.skeleton-label {
+    width: 30%;
+    height: 1em;
+    margin-bottom: 0.5rem;
+}
+
+.skeleton-input {
+    width: 100%;
+    height: 40px;
+}
+
+/* ============================================
+   SKELETON GRID
+   ============================================ */
+
+.skeleton-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+}
+
+/* ============================================
+   EJEMPLOS DE USO COMPLETOS
+   ============================================ */
+
+/* Página de productos */
+.skeleton-products-page {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+}
+
+/* Detalle de producto */
+.skeleton-product-detail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    padding: 2rem;
+}
+
+.skeleton-product-detail .skeleton-gallery {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.skeleton-product-detail .skeleton-info {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+/* Dashboard admin */
+.skeleton-dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+}
+
+.skeleton-dashboard-card {
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid #e0e0e0;
+}
+
+/* ============================================
+   UTILIDADES
+   ============================================ */
+
+/* Ocultar contenido mientras carga */
+.is-loading {
+    position: relative;
+    pointer-events: none;
+}
+
+.is-loading > *:not(.skeleton) {
+    visibility: hidden;
+}
+
+/* Fade in cuando termina de cargar */
+@keyframes skeleton-fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.skeleton-loaded {
+    animation: skeleton-fade-in 0.3s ease-in;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+
+@media (max-width: 768px) {
+    .skeleton-product-detail {
+        grid-template-columns: 1fr;
+    }
+    
+    .skeleton-article-card {
+        flex-direction: column;
+    }
+    
+    .skeleton-article-card .skeleton-image {
+        width: 100%;
+    }
+}

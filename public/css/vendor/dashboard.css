@@ -1,14 +1,15 @@
+
 :root {
   --vd-bg: var(--color_fondo);
-  --vd-card: color-mix(in hsl, var(--color_header), hsl(0 0% 100% / 7%));
-  --vd-border: rgba(0,0,0,0.08);
+  --vd-card: color-mix(in srgb, var(--color_header), var(--color_fondo) 7%);
+  --vd-border: color-mix(in srgb, var(--color_header), transparent 80%);
   --vd-text: var(--color_texto);
-  --vd-muted: color-mix(in hsl, var(--color_texto), hsl(0 0% 100% / 45%));
+  --vd-muted: color-mix(in srgb, var(--color_texto), var(--color_fondo) 45%);
   --vd-accent: var(--color_primario);
-  --vd-success: #10b981;
-  --vd-info: #0ea5e9;
-  --vd-warning: #f59e0b;
-  --vd-danger: #ef4444;
+  --vd-success: var(--tone-success);
+  --vd-info: var(--tone-info);
+  --vd-warning: var(--tone-warning);
+  --vd-danger: var(--tone-danger);
 }
 
 .vendor-hero {

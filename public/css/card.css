@@ -10,9 +10,11 @@
 }
 
 /* Card Base - Diseño unificado para todas las cards */
+
 .card,
 .card-producto {
-    display: block;
+    display: flex;
+    flex-direction: column;
     background: var(--color_fondo);
     border: 1px solid var(--color_acento);
     border-radius: 8px;
@@ -20,10 +22,8 @@
     padding: 0;
     text-decoration: none;
     color: var(--color_texto);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-soft);
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    display: flex;
-    flex-direction: column;
     position: relative;
 }
 
@@ -43,10 +43,11 @@
     font-weight: 600;
 }
 
+
 .card:hover,
 .card-producto:hover {
     transform: translateY(-6px);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 8px 20px color-mix(in srgb, var(--color_texto), transparent 85%);
     border-color: var(--color_primario);
 }
 
@@ -58,6 +59,23 @@
     height: 180px;
     object-fit: cover;
     transition: transform 0.3s ease;
+    background-color: var(--color_header);
+    background-image: linear-gradient(45deg, var(--color_header) 25%, transparent 25%, transparent 75%, var(--color_header) 75%, var(--color_header)), linear-gradient(45deg, var(--color_header) 25%, transparent 25%, transparent 75%, var(--color_header) 75%, var(--color_header));
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    display: block;
+}
+
+.offer-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+    background-color: var(--color_header);
+    background-image: linear-gradient(45deg, var(--color_header) 25%, transparent 25%, transparent 75%, var(--color_header) 75%, var(--color_header)), linear-gradient(45deg, var(--color_header) 25%, transparent 25%, transparent 75%, var(--color_header) 75%, var(--color_header));
+    background-size: 20px 20px;
+    background-position: 0 0, 10px 10px;
+    display: block;
 }
 
 .card:hover .card-img,
@@ -78,7 +96,7 @@
 .card-content h4 {
     margin: 0 0 0.5em 0;
     font-size: 1.2em;
-    color: var(--color_titulo);
+    color: var(--color_primario);
     font-weight: 600;
     line-height: 1.3;
 }
@@ -94,20 +112,17 @@
 
 .card-content p {
     font-size: 0.9em;
-    color: var(--color_subtitulo);
+    color: var(--color_texto);
     line-height: 1.6;
     margin: 0.5em 0;
-    overflow: hidden;
 }
 
-/* Limitar descripción a 3 líneas */
+/* Limitar descripción a 3 líneas con ellipsis */
 .card-description {
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    text-overflow: ellipsis;
-}
     text-overflow: ellipsis;
     flex: 1;
 }
@@ -129,25 +144,7 @@
 }
 
 /* Buttons */
-.btn-add-cart,
-.btn-ver-mas {
-    width: 100%;
-    background: var(--color_boton);
-    color: white;
-    border: none;
-    border-radius: 6px;
-    padding: 0.75em 1.5em;
-    font-size: 0.95em;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5em;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    text-decoration: none;
-}
+/* Las clases de botones ahora se gestionan en public/css/buttons.css */
 
 .btn-add-cart:hover,
 .btn-ver-mas:hover {
@@ -338,7 +335,7 @@
 
 .offer-content h3 {
     margin: 0 0 0.5em;
-    color: var(--color_titulo);
+    color: var(--color_primario);
     font-size: 1.2em;
     font-weight: 600;
 }
@@ -410,14 +407,14 @@
 
 .category-card h3 {
     margin: 0;
-    color: var(--color_titulo);
+    color: var(--color_primario);
     font-weight: 600;
 }
 
 .category-card p {
     margin: 0.5em 0 0;
     font-size: 0.85em;
-    color: var(--color_subtitulo);
+    color: var(--color_texto);
     opacity: 0.9;
 }
 
@@ -488,7 +485,7 @@
     margin-top: 3.5em;
     font-size: 1.4em;
     font-weight: 700;
-    color: var(--color_titulo);
+    color: var(--color_primario);
     line-height: 1.3;
     min-height: 2.6em;
 }
@@ -504,7 +501,7 @@
 
 .article-card .card-content p {
     line-height: 1.7;
-    color: var(--color_subtitulo);
+    color: var(--color_texto);
     margin: 1em 0;
 }
 

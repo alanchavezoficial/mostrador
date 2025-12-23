@@ -15,7 +15,7 @@ class ProductController
     {
         global $conn;
         $this->conn      = $conn;
-        $this->uploadDir = __DIR__ . '/../../public/img/';
+        $this->uploadDir = __DIR__ . '/../../public/uploads/';
     }
     public function index(): void
     {
@@ -61,92 +61,118 @@ class ProductController
     public function productCreate(): void
     {
         require_once __DIR__ . '/../core/auth.php'; 
-        $nombre    = trim($_POST['nombre'] ?? '');
-        $desc      = trim($_POST['descripcion'] ?? '');
-        $precio    = floatval($_POST['precio'] ?? 0);
-        $stock     = intval($_POST['stock'] ?? 0);
-        $catId     = intval($_POST['categoria_id'] ?? 0);
-        $ofertaAct = isset($_POST['oferta_activa']) ? 1 : 0;
-        $ofertaMon = $ofertaAct ? floatval($_POST['oferta_monto'] ?? 0) : null;
-        $ofertaTip = $ofertaAct ? ($_POST['oferta_tipo'] ?? null) : null;
-        $destacado = isset($_POST['destacado']) ? 1 : 0;
+        require_once __DIR__ . '/../core/csrf.php';
+        csrf_require();
+        try {
+            $nombre    = trim($_POST['nombre'] ?? '');
+            $desc      = trim($_POST['descripcion'] ?? '');
+            $precio    = floatval($_POST['precio'] ?? 0);
+            $stock     = intval($_POST['stock'] ?? 0);
+            $catId     = intval($_POST['categoria_id'] ?? 0);
+            $ofertaAct = isset($_POST['oferta_activa']) ? 1 : 0;
+            $ofertaMon = $ofertaAct ? floatval($_POST['oferta_monto'] ?? 0) : null;
+            $ofertaTip = $ofertaAct ? ($_POST['oferta_tipo'] ?? null) : null;
+            $destacado = isset($_POST['destacado']) ? 1 : 0;
 
-        if (!$nombre || !$precio || !$catId) {
-            http_response_code(400);
-            die("Faltan datos obligatorios.");
-        }
-
-        // 👇 Imagen por defecto
-        $imagenName = 'assets/default.png';
-
-        if (!empty($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
-            $finfo = pathinfo($_FILES['imagen']['name']);
-            $ext   = strtolower($finfo['extension'] ?? '');
-            $size  = $_FILES['imagen']['size'];
-            $tmpPath = $_FILES['imagen']['tmp_name'];
-
-            if (!in_array($ext, $this->allowedExts)) {
+            if (!$nombre || !$precio || !$catId) {
                 http_response_code(400);
-                die("Extensión de imagen no permitida.");
-            }
-            if ($size > $this->maxFileSize) {
-                http_response_code(400);
-                die("La imagen excede el límite de tamaño.");
+                throw new Exception("Faltan datos obligatorios.");
             }
 
-            // Validar MIME type real del archivo
-            $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
-            $mimeType = mime_content_type($tmpPath);
-            if (!in_array($mimeType, $allowedMimes)) {
-                http_response_code(400);
-                die("Tipo de archivo no válido. Solo se permiten imágenes.");
+            // 👇 Imagen por defecto
+            $imagenName = 'assets/default.png';
+
+            if (!empty($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+                $finfo = pathinfo($_FILES['imagen']['name']);
+                $ext   = strtolower($finfo['extension'] ?? '');
+                $size  = $_FILES['imagen']['size'];
+                $tmpPath = $_FILES['imagen']['tmp_name'];
+
+                if (!in_array($ext, $this->allowedExts)) {
+                    http_response_code(400);
+                    throw new Exception("Extensión de imagen no permitida.");
+                }
+                if ($size > $this->maxFileSize) {
+                    http_response_code(400);
+                    throw new Exception("La imagen excede el límite de tamaño.");
+                }
+
+                // Validar MIME type usando finfo (más confiable que mime_content_type)
+                $allowedMimes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+                $finfo_resource = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo_resource, $tmpPath);
+                finfo_close($finfo_resource);
+                
+                if (!in_array($mimeType, $allowedMimes)) {
+                    http_response_code(400);
+                    throw new Exception("Tipo de archivo no válido. MIME: " . $mimeType);
+                }
+
+                $imagenName = uniqid('prd_') . '.' . $ext;
+                $destPath = $this->uploadDir . $imagenName;
+                
+                if (!move_uploaded_file($tmpPath, $destPath)) {
+                    http_response_code(500);
+                    throw new Exception("Error al guardar la imagen en: " . $destPath . ". Verifica los permisos de la carpeta uploads/.");
+                }
             }
 
-            $imagenName = uniqid('prd_') . '.' . $ext;
-            move_uploaded_file($tmpPath, $this->uploadDir . $imagenName);
-        }
+            $uuid = uniqid('prd_', true);
+            $userId = $_SESSION['user_id'] ?? null;
+            
+            $stmt = $this->conn->prepare("
+            INSERT INTO products
+            (id, nombre, descripcion, precio, stock, imagen, categoria_id, oferta_activa, oferta_monto, oferta_tipo, destacado, user_id, creado_en)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
+        ");
+            $stmt->bind_param(
+                "sssdisiidsii",
+                $uuid,
+                $nombre,
+                $desc,
+                $precio,
+                $stock,
+                $imagenName,
+                $catId,
+                $ofertaAct,
+                $ofertaMon,
+                $ofertaTip,
+                $destacado,
+                $userId
+            );
 
-        $uuid = uniqid('prd_', true);
-        $stmt = $this->conn->prepare("
-        INSERT INTO products
-        (id, nombre, descripcion, precio, stock, imagen, categoria_id, oferta_activa, oferta_monto, oferta_tipo, destacado, creado_en)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())
-    ");
-        $stmt->bind_param(
-            "sssdisiidsi",
-            $uuid,
-            $nombre,
-            $desc,
-            $precio,
-            $stock,
-            $imagenName,
-            $catId,
-            $ofertaAct,
-            $ofertaMon,
-            $ofertaTip,
-            $destacado
-        );
+            if (!$stmt->execute()) {
+                http_response_code(500);
+                throw new Exception("Error al crear producto: " . $stmt->error);
+            }
 
-        if (!$stmt->execute()) {
-            http_response_code(500);
-            die("Error al crear producto: " . $stmt->error);
-        }
+            if ($_GET['ajax'] ?? '' === '1') {
+                $_GET['view'] = 'table';
+                $_GET['msg']  = 'created';
+                $_GET['ajax'] = '1';
+                $this->index();
+                exit;
+            }
 
-        if ($_GET['ajax'] ?? '' === '1') {
-            $_GET['view'] = 'table';
-            $_GET['msg']  = 'created';
-            $_GET['ajax'] = '1';
-            $this->index();
+            header("Location: " . BASE_URL . "admin/productos?msg=created");
+            exit;
+        } catch (Throwable $e) {
+            error_log('[ProductController::productCreate] ' . $e->getMessage());
+            if (($_GET['ajax'] ?? '') === '1') {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Error al crear producto']);
+                exit;
+            }
+            header("Location: " . BASE_URL . "admin/productos?view=register&msg=error");
             exit;
         }
-
-        header("Location: " . BASE_URL . "admin/productos?msg=created");
-        exit;
     }
 
     public function productDelete(): void
     {
         require_once __DIR__ . '/../core/auth.php'; 
+        require_once __DIR__ . '/../core/csrf.php';
+        csrf_require();
         $id = trim($_POST['id'] ?? '');
         if (!$id) {
             http_response_code(400);
@@ -219,8 +245,10 @@ class ProductController
                 'meta_keywords' => $producto['meta_keywords'] ?? ''
             ]);
         } catch (Throwable $e) {
+            error_log('[ProductController::view] ' . $e->getMessage());
             http_response_code(500);
-            echo "<pre>Error al cargar producto: " . htmlspecialchars($e->getMessage()) . "</pre>";
+            header('Location: ' . BASE_URL . '?error=producto_not_found');
+            exit;
         }
     }
 
@@ -230,8 +258,9 @@ class ProductController
         $id = $_GET['id'] ?? null;
 
         if (!$id) {
-            http_response_code(400);
-            die('ID de producto no válido.');
+            error_log('[ProductController::productEditForm] ID de producto no válido: ' . var_export($id, true));
+            header('Location: ' . BASE_URL . 'admin/productos?msg=error');
+            exit;
         }
 
         $stmt = $this->conn->prepare("SELECT * FROM products WHERE id = ?");
@@ -241,8 +270,9 @@ class ProductController
         $product = $result->fetch_assoc();
 
         if (!$product) {
-            http_response_code(404);
-            die('Producto no encontrado.');
+            error_log('[ProductController::productEditForm] Producto no encontrado: ' . var_export($id, true));
+            header('Location: ' . BASE_URL . 'admin/productos?msg=error');
+            exit;
         }
 
         $catsResult = $this->conn->query("SELECT id, nombre FROM categories");
@@ -262,25 +292,25 @@ class ProductController
         require_once __DIR__ . '/../core/auth.php';
         
         // Prevenir output antes de JSON
+        require_once __DIR__ . '/../core/csrf.php';
+        csrf_require();
+
         ob_start();
         
         $id = $_POST['id'] ?? null;
         if (!$id) {
             ob_end_clean();
+            error_log('[ProductController::productEdit] ID inválido');
             if (($_GET['ajax'] ?? '') === '1') {
                 header('Content-Type: application/json');
                 echo json_encode(['error' => 'ID inválido']);
                 exit;
             }
             http_response_code(400);
-            die('ID inválido.');
+            header('Location: ' . BASE_URL . 'admin/productos?msg=error');
+            exit;
         }
 
-        // --- Debug payload ---
-        $debug = [
-            'post'  => $_POST,
-            'files' => $_FILES,
-        ];
 
         // Datos principales
         $nombre       = $_POST['nombre']       ?? '';

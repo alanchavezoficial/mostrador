@@ -1,19 +1,23 @@
-/*
- * Navegación pública unificada
- * - Cabecera pegajosa con fondo sólido
- * - Botón hamburguesa compartido con el panel admin
- * - Menú responsive desplegable
- */
+/* ================================================
+   NAVEGACIÓN PÚBLICA UNIFICADA
+   - Cabecera sticky con backdrop-filter
+   - Menú responsive con hamburguesa
+   - Botones de autenticación
+   ================================================ */
 
 :root {
     --header-height: 68px;
-    --nav-radius: 12px;
-    --nav-gap: 0.45rem;
-    --nav-padding-y: 0.65rem;
-    --nav-padding-x: 1rem;
-    --nav-border: rgba(0, 0, 0, 0.06);
-    --nav-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+    --nav-radius: 10px;
+    --nav-gap: 0.6rem;
+    --nav-padding-y: 0.5rem;
+    --nav-padding-x: 0.95rem;
+    --nav-border: color-mix(in srgb, var(--color_header), transparent 70%);
+    --nav-shadow: 0 12px 40px rgba(0, 0, 0, 0.32);
 }
+
+/* ================================================
+   HEADER PRINCIPAL
+   ================================================ */
 
 header {
     position: sticky;
@@ -21,10 +25,10 @@ header {
     z-index: 1000;
     background: var(--color_header);
     border-bottom: 1px solid var(--nav-border);
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-soft);
     padding: 0;
     margin: 0;
-    backdrop-filter: blur(6px);
+    backdrop-filter: blur(8px);
 }
 
 .header-container {
@@ -44,6 +48,10 @@ header {
     min-width: 0;
 }
 
+/* ================================================
+   LOGO / TÍTULO
+   ================================================ */
+
 header h1 {
     margin: 0;
     font-size: 1.18rem;
@@ -54,7 +62,7 @@ header h1 a {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    color: var(--color_texto);
+    color: var(--color_titulo);
     text-decoration: none;
     font-weight: 700;
     letter-spacing: -0.01em;
@@ -63,7 +71,12 @@ header h1 a {
 
 header h1 a:hover {
     color: var(--color_boton);
+    text-decoration: none;
 }
+
+/* ================================================
+   NAVEGACIÓN PRINCIPAL
+   ================================================ */
 
 .nav-main {
     flex: 1;
@@ -79,25 +92,29 @@ header h1 a:hover {
     gap: 0.35rem;
     padding: var(--nav-padding-y) var(--nav-padding-x);
     text-decoration: none;
-    color: var(--color_texto);
+    color: var(--color_titulo);
     border-radius: var(--nav-radius);
     border: 1px solid transparent;
-    font-size: 0.95rem;
-    font-weight: 600;
+    font-size: 1rem;
+    font-weight: 700;
     white-space: nowrap;
-    transition: background 180ms ease, color 180ms ease, border-color 180ms ease, transform 150ms ease;
+    transition: background 160ms ease, color 160ms ease, border-color 160ms ease, transform 140ms ease;
 }
 
-.nav-link:hover {
-    background: color-mix(in hsl, var(--color_header), hsl(0 0% 100% / 12%));
-    border-color: color-mix(in hsl, var(--color_header), hsl(0 0% 0% / 12%));
+.nav-link:hover,
+.nav-link:focus,
+.nav-link:active {
+    background: var(--color_boton);
+    color: var(--color_texto_boton);
+    border-color: var(--color_boton);
     transform: translateY(-1px);
+    text-decoration: none;
 }
 
 .nav-link.highlight {
     background: var(--color_boton);
     color: var(--color_texto_boton);
-    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
+    box-shadow: var(--shadow-soft);
     border-color: transparent;
 }
 
@@ -106,12 +123,17 @@ header h1 a:hover {
     transform: translateY(-1px);
 }
 
+/* Estado activo del enlace */
 .nav-link.active,
 .nav-link[aria-current="page"] {
-    background: color-mix(in hsl, var(--color_boton), hsl(0 0% 100% / 15%));
-    border-color: color-mix(in hsl, var(--color_boton), hsl(0 0% 0% / 10%));
+    background: var(--color_boton);
+    border-color: var(--color_boton);
     color: var(--color_texto_boton);
 }
+
+/* ================================================
+   SECCIÓN DE AUTENTICACIÓN
+   ================================================ */
 
 .auth-section {
     display: flex;
@@ -130,24 +152,29 @@ header h1 a:hover {
     color: var(--color_texto);
 }
 
+/* Elementos móviles ocultos por defecto */
 .auth-buttons-mobile,
 .user-info-mobile,
 .user-name-mobile {
     display: none;
 }
 
+/* ================================================
+   BOTÓN HAMBURGUESA (MENÚ MÓVIL)
+   ================================================ */
+
 .menu-toggle {
     display: none;
     align-items: center;
     justify-content: center;
-    gap: 5px;
-    width: 44px;
-    height: 44px;
-    padding: 0.35rem;
-    border-radius: 12px;
-    border: 1px solid var(--nav-border);
-    background: color-mix(in hsl, var(--color_header), hsl(0 0% 100% / 6%));
-    color: var(--color_texto);
+    gap: 6px;
+    width: 48px;
+    height: 48px;
+    padding: 0.4rem;
+    border-radius: 14px;
+    border: 1px solid color-mix(in srgb, var(--nav-border), #000 12%);
+    background: color-mix(in srgb, var(--color_header), #000 14%);
+    color: var(--color_titulo);
     cursor: pointer;
     transition: border-color 150ms ease, transform 150ms ease, background 150ms ease;
 }
@@ -161,14 +188,16 @@ header h1 a:hover {
     transform: scale(0.98);
 }
 
+/* Líneas del ícono hamburguesa */
 .menu-toggle span {
-    width: 22px;
-    height: 3px;
+    width: 24px;
+    height: 2.6px;
     background-color: currentColor;
     border-radius: 999px;
     transition: transform 200ms ease, opacity 160ms ease;
 }
 
+/* Animación a X cuando está activo */
 .menu-toggle.active span:nth-child(1) {
     transform: rotate(45deg) translate(5px, 6px);
 }
@@ -180,6 +209,10 @@ header h1 a:hover {
 .menu-toggle.active span:nth-child(3) {
     transform: rotate(-45deg) translate(6px, -6px);
 }
+
+/* ================================================
+   BOTONES DE AUTENTICACIÓN
+   ================================================ */
 
 .btn-login,
 .btn-register,
@@ -204,17 +237,23 @@ header h1 a:hover {
 .btn-register {
     background: var(--color_boton);
     color: var(--color_texto_boton);
-    box-shadow: 0 10px 18px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-soft);
 }
 
 .btn-login:hover,
-.btn-register:hover {
+.btn-register:hover,
+.btn-login:focus,
+.btn-register:focus,
+.btn-login:active,
+.btn-register:active {
     filter: brightness(0.97);
     transform: translateY(-1px);
+    text-decoration: none;
+    color: var(--color_texto_boton);
 }
 
 .btn-dashboard {
-    background: #0ba472;
+    background: var(--tone-success);
     color: #ffffff;
 }
 
@@ -224,7 +263,7 @@ header h1 a:hover {
 }
 
 .btn-logout {
-    background: #e74c3c;
+    background: var(--tone-danger);
     color: #ffffff;
 }
 
@@ -232,6 +271,10 @@ header h1 a:hover {
     filter: brightness(0.95);
     transform: translateY(-1px);
 }
+
+/* ================================================
+   RESPONSIVE - TABLETS Y MENORES
+   ================================================ */
 
 @media screen and (max-width: 1080px) {
     .header-container {
@@ -254,6 +297,7 @@ header h1 a:hover {
     .header-container {
         flex-wrap: wrap;
         gap: 0.6rem;
+        position: relative; /* anchor dropdown positioning */
     }
 
     .header-left {
@@ -274,7 +318,7 @@ header h1 a:hover {
         flex-direction: column;
         align-items: stretch;
         gap: 0.35rem;
-        background: var(--color_header);
+        background: color-mix(in srgb, var(--color_header), #000 18%);
         padding: 0.9rem 1rem;
         box-shadow: var(--nav-shadow);
         transform: translateY(-10px) scale(0.96);
@@ -283,6 +327,8 @@ header h1 a:hover {
         pointer-events: none;
         border-radius: 14px;
         border: 1px solid var(--nav-border);
+        backdrop-filter: blur(8px);
+        z-index: 1200;
         transition: transform 220ms ease, opacity 200ms ease;
     }
 

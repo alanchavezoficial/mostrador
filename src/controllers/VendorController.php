@@ -218,7 +218,8 @@ class VendorController
             header('Location: ' . BASE_URL . 'vendor/perfil?success=Perfil actualizado correctamente');
             exit;
         } catch (Throwable $e) {
-            echo "<pre>❌ Error: " . htmlspecialchars($e->getMessage()) . "</pre>";
+            error_log('[VendorController::profileUpdate] ' . $e->getMessage());
+            header('Location: ' . BASE_URL . 'vendor/perfil?error=1');
             exit;
         }
     }

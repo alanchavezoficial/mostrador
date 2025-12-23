@@ -1,0 +1,150 @@
+/* ================================================
+   Table Theme - Unificado para todo el sitio
+   Usa variables de temas.css.php y se adapta al dark mode
+   ================================================ */
+
+
+:root {
+  /* Variables auxiliares con fallback */
+  --table-radius: 8px;
+  --table-padding-y: 12px;
+  --table-padding-x: 16px;
+}
+
+/* Base para todas las tablas */
+
+table,
+.table,
+.admin-table,
+.orders-table,
+.products-table,
+.simple-table,
+.events-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--color_fondo);
+  color: var(--color_texto);
+}
+
+/* cart-table tiene su propio fondo en cart.css */
+.cart-table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--color_texto);
+}
+
+/* Contenedor opcional con scroll */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+}
+
+/* Cabecera */
+
+thead th {
+  background: var(--color_header);
+  color: var(--color_titulo);
+  font-weight: 600;
+  text-align: left;
+  padding: var(--table-padding-y) var(--table-padding-x);
+}
+
+/* Celdas */
+
+th,
+td {
+  padding: var(--table-padding-y) var(--table-padding-x);
+  border-bottom: 1px solid var(--table_border_color, var(--border-muted));
+  vertical-align: middle;
+}
+
+/* Alternado de filas */
+
+tbody tr:nth-child(even) {
+  background-color: color-mix(in srgb, var(--color_fondo), var(--color_texto) 4%);
+}
+
+/* Hover de filas */
+tbody tr:hover {
+  background-color: color-mix(in srgb, var(--color_texto), transparent 90%);
+}
+
+/* Última fila sin borde */
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Bordes externos cuando se desea */
+.table-bordered,
+.cart-table,
+.admin-table {
+  border: 1px solid var(--table_border_color, var(--border-muted));
+  border-radius: var(--table-radius);
+  overflow: hidden;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--color_texto), transparent 90%);
+}
+
+/* Variante compacta */
+.table-sm th,
+.table-sm td {
+  padding: 8px 12px;
+}
+
+/* Alineación de acciones */
+th.col-actions,
+td.col-actions {
+  text-align: center;
+  white-space: nowrap;
+  width: 120px;
+}
+
+/* Miniaturas en tablas */
+img.table-thumb {
+  width: 56px;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border-muted);
+  background: var(--color_fondo);
+}
+
+/* Encaja con dark mode automáticamente */
+[data-theme="dark"] tbody tr:nth-child(even) {
+  background-color: color-mix(in srgb, var(--color_texto), transparent 94%);
+}
+
+[data-theme="dark"] tbody tr:hover {
+  background-color: color-mix(in srgb, var(--color_texto), transparent 90%);
+}
+
+[data-theme="dark"] img.table-thumb {
+  border-color: color-mix(in srgb, var(--color_texto), transparent 80%);
+  background: color-mix(in srgb, var(--color_header), transparent 10%);
+}
+
+/* Unificar estilos concretos existentes */
+.cart-table,
+.admin-table,
+.orders-table,
+.products-table,
+.simple-table,
+.events-table {
+  background: var(--color_fondo);
+  border-color: var(--border-muted);
+}
+
+/* Cabecera específica cuando usan thead propio */
+.cart-table thead,
+.admin-table thead,
+.orders-table thead,
+.products-table thead,
+.simple-table thead,
+.events-table thead {
+  background: var(--color_header);
+}
+
+/* Ultima columna alignment por defecto */
+th:last-child,
+td:last-child {
+  text-align: center;
+}

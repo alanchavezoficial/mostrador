@@ -308,7 +308,7 @@ if (!isset($user) || $user['role'] !== 'vendedor') {
             </div>
         <?php endif; ?>
 
-        <form method="POST" action="/mostrador/vendor/perfil-actualizar">
+        <form method="POST" action="<?= BASE_URL ?>vendor/perfil-actualizar">
             <?= csrf_field(); ?>
             <div class="form-row">
                 <div class="form-group">
@@ -343,7 +343,7 @@ if (!isset($user) || $user['role'] !== 'vendedor') {
 
             <div class="btn-group">
                 <button type="submit" class="btn-save">💾 Guardar Cambios</button>
-                <a href="/mostrador/vendor/dashboard" class="btn-cancel">← Volver al Dashboard</a>
+                <a href="<?= BASE_URL ?>vendor/dashboard" class="btn-cancel">← Volver al Dashboard</a>
             </div>
         </form>
     </div>
@@ -435,7 +435,7 @@ function submitPasswordChange(event) {
         return;
     }
     
-    fetch('/mostrador/vendor/cambiar-contrasena', {
+    fetch('<?= BASE_URL ?>vendor/cambiar-contrasena', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

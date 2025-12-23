@@ -62,6 +62,6 @@ require_once __DIR__ . '/../../../core/auth.php';
   </div>
 
   <div class="form-actions">
-    <button type="submit" class="btn">💾 Guardar campo</button>
+    <button type="submit" class="btn btn-primary">💾 Guardar campo</button>
   </div>
 </form>

@@ -15,7 +15,7 @@ $page_js = 'cart.js';
                class="card-img">
           <div class="card-content">
             <h3><?= htmlspecialchars($p['nombre']) ?></h3>
-            <p class="price">$<?= number_format($p['precio'], 2, ',', '.') ?></p>
+            <p class="price">$<?= number_format($p['precio'] / 100, 2, ',', '.') ?></p>
             <div class="card-actions" style="display: flex; gap: 0.5rem; margin-top: 0.75rem;">
               <button class="btn-accent btn-sm" data-add-cart data-product-id="<?= $p['id'] ?>">
                 Agregar al carrito

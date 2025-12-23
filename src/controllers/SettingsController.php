@@ -220,7 +220,8 @@ class SettingsController
             header("Location: " . BASE_URL . "admin/configuraciones?view=table&msg=deleted");
             exit;
         } catch (Throwable $e) {
-            echo "<pre>❌ Error al eliminar configuración: " . htmlspecialchars($e->getMessage()) . "</pre>";
+            error_log('[SettingsController::settingsDelete] ' . $e->getMessage());
+            header("Location: " . BASE_URL . "admin/configuraciones?view=table&msg=error_delete");
             exit;
         }
     }

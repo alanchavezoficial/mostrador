@@ -2,6 +2,7 @@
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../core/db.php';
 require_once __DIR__ . '/../core/View.php';
+require_once __DIR__ . '/../core/RichTextHelper.php';
 
 class ArticleController
 {
@@ -31,10 +32,12 @@ class ArticleController
             case 'register':
                 $products   = $this->conn->query("SELECT id, nombre FROM products");
                 $categories = $this->conn->query("SELECT id, nombre FROM categories");
+                $userName   = $_SESSION['nombre'] ?? 'Usuario';
                 $data = [
                     'message'    => $message,
                     'products'   => $products,
-                    'categories' => $categories
+                    'categories' => $categories,
+                    'userName'   => $userName
                 ];
                 $vista = 'articulos/register';
                 break;
@@ -62,7 +65,8 @@ class ArticleController
         require_once __DIR__ . '/../core/auth.php'; 
         if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
             http_response_code(405);
-            die("Método no permitido.");
+            $this->respondJSON(['success' => false, 'message' => 'Método no permitido'], 405);
+            return;
         }
 
         $title             = trim($_POST['title'] ?? '');
@@ -73,17 +77,22 @@ class ArticleController
         $isCarousel        = isset($_POST['is_carousel']) ? 1 : 0;
         $metaTitle         = trim($_POST['meta_title'] ?? '');
         $metaDescription   = trim($_POST['meta_description'] ?? '');
+        $productId         = isset($_POST['product_id']) && $_POST['product_id'] !== '' ? intval($_POST['product_id']) : null;
         $relatedProducts   = isset($_POST['related_products']) ? implode(',', $_POST['related_products']) : '';
         $relatedCategories = isset($_POST['related_categories']) ? implode(',', $_POST['related_categories']) : '';
 
-        if ($title === '' || $content === '') {
+        // Sanitizar contenido HTML
+        $content = RichTextHelper::sanitizeHTML($content);
+
+        if ($title === '' || !RichTextHelper::hasContent($content)) {
             http_response_code(400);
-            die("Título y contenido son obligatorios.");
+            $this->respondJSON(['success' => false, 'message' => 'Título y contenido son obligatorios'], 400);
+            return;
         }
 
-        $stmt = $this->conn->prepare("\n            INSERT INTO articles \n            (title, content, author, is_visible, is_featured, is_carousel, meta_title, meta_description, related_products, related_categories) \n            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n        ");
+        $stmt = $this->conn->prepare("\n            INSERT INTO articles \n            (title, content, author, is_visible, is_featured, is_carousel, meta_title, meta_description, product_id, related_products, related_categories) \n            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)\n        ");
         $stmt->bind_param(
-            'sssiiissss',
+            'sssiiissiis',
             $title,
             $content,
             $author,
@@ -92,13 +101,15 @@ class ArticleController
             $isCarousel,
             $metaTitle,
             $metaDescription,
+            $productId,
             $relatedProducts,
             $relatedCategories
         );
 
         if (!$stmt->execute()) {
             http_response_code(500);
-            die("Error al publicar el artículo: " . $stmt->error);
+            $this->respondJSON(['success' => false, 'message' => 'Error al publicar el artículo: ' . $stmt->error], 500);
+            return;
         }
 
         $articleId = $stmt->insert_id;
@@ -120,17 +131,8 @@ class ArticleController
         // Handle multiple images
         $this->saveArticleImages($articleId, $_FILES['images'] ?? null);
 
-        if (($_GET['ajax'] ?? '') === '1') {
-            $articles = $this->conn->query("SELECT * FROM articles ORDER BY published_at DESC");
-            View::renderPartial('articulos/table', [
-                'articles' => $articles,
-                'message'  => '✅ Artículo publicado correctamente.'
-            ]);
-            exit;
-        }
-
-        header("Location: " . BASE_URL . "admin/articulos?view=table&msg=created");
-        exit;
+        // Responder con JSON
+        $this->respondJSON(['success' => true, 'message' => 'Artículo publicado correctamente', 'id' => $articleId], 201);
     }
 
     public function articleDelete(): void
@@ -240,11 +242,13 @@ class ArticleController
 
         $products   = $this->conn->query("SELECT id, nombre FROM products");
         $categories = $this->conn->query("SELECT id, nombre FROM categories");
+        $userName   = $_SESSION['nombre'] ?? 'Usuario';
 
         View::renderPartial('articulos/edit', [
             'article'    => $article,
             'products'   => $products,
-            'categories' => $categories
+            'categories' => $categories,
+            'userName'   => $userName
         ]);
     }
 
@@ -265,23 +269,28 @@ class ArticleController
         $isCarousel        = isset($_POST['is_carousel']) ? 1 : 0;
         $metaTitle         = trim($_POST['meta_title'] ?? '');
         $metaDescription   = trim($_POST['meta_description'] ?? '');
+        $productId         = isset($_POST['product_id']) && $_POST['product_id'] !== '' ? intval($_POST['product_id']) : null;
         $relatedProducts   = isset($_POST['related_products']) ? implode(',', $_POST['related_products']) : '';
         $relatedCategories = isset($_POST['related_categories']) ? implode(',', $_POST['related_categories']) : '';
 
-        if ($id === 0 || $title === '' || $content === '') {
+        // Sanitizar contenido HTML
+        $content = RichTextHelper::sanitizeHTML($content);
+
+        if ($id === 0 || $title === '' || !RichTextHelper::hasContent($content)) {
             http_response_code(400);
-            die("Faltan campos obligatorios.");
+            $this->respondJSON(['success' => false, 'message' => 'Faltan campos obligatorios'], 400);
+            return;
         }
 
         $stmt = $this->conn->prepare("
         UPDATE articles SET 
           title = ?, content = ?, author = ?, is_visible = ?, is_featured = ?, 
-                    meta_title = ?, meta_description = ?, related_products = ?, related_categories = ?, is_carousel = ?, 
+                    meta_title = ?, meta_description = ?, product_id = ?, related_products = ?, related_categories = ?, is_carousel = ?, 
           updated_at = NOW()
         WHERE id = ?
     ");
         $stmt->bind_param(
-            'sssiissssii',
+            'ssiissisiiii',
             $title,
             $content,
             $author,
@@ -289,6 +298,7 @@ class ArticleController
             $isFeatured,
             $metaTitle,
             $metaDescription,
+            $productId,
             $relatedProducts,
             $relatedCategories,
             $isCarousel,
@@ -297,7 +307,8 @@ class ArticleController
 
         if (!$stmt->execute()) {
             http_response_code(500);
-            die("Error al actualizar el artículo: " . $stmt->error);
+            $this->respondJSON(['success' => false, 'message' => 'Error al actualizar el artículo: ' . $stmt->error], 500);
+            return;
         }
 
         // Enforce carousel limit after edit
@@ -317,14 +328,8 @@ class ArticleController
         // Append new images if provided
         $this->saveArticleImages($id, $_FILES['images'] ?? null);
 
-        if (($_GET['ajax'] ?? '') === '1') {
-            $articles = $this->conn->query("SELECT * FROM articles ORDER BY published_at DESC");
-            View::renderPartial('articulos/table', [
-                'articles' => $articles,
-                'message'  => '✏️ Artículo actualizado correctamente.'
-            ]);
-            exit;
-        }
+        // Responder con JSON
+        $this->respondJSON(['success' => true, 'message' => 'Artículo actualizado correctamente', 'id' => $id], 200);
     }
 
     private function saveArticleImages(int $articleId, ?array $files): void
@@ -405,4 +410,16 @@ class ArticleController
             finfo_close($finfo);
         }
     }
+
+    /**
+     * Responde con JSON
+     */
+    private function respondJSON($data, $statusCode = 200): void
+    {
+        http_response_code($statusCode);
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data);
+        exit;
+    }
+
 }

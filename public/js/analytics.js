@@ -7,27 +7,21 @@
 
   function setCookie(name, value, days) {
     const d = new Date();
-    d.setTime(d.getTime() + (days * 24 * 60 * 60 * 1000));
-    const expires = 'expires=' + d.toUTCString();
-    document.cookie = `${name}=${value};${expires};path=/`;
+    d.setTime(d.getTime() + days * 24 * 60 * 60 * 1000);
+    document.cookie = `${name}=${value};path=/;expires=${d.toUTCString()};SameSite=Lax`;
   }
 
   function getCookie(name) {
-    const cname = name + '=';
-    const decoded = decodeURIComponent(document.cookie || '');
-    const ca = decoded.split(';');
-    for (let i = 0; i < ca.length; i++) {
-      let c = ca[i];
-      while (c.charAt(0) === ' ') c = c.substring(1);
-      if (c.indexOf(cname) === 0) return c.substring(cname.length, c.length);
-    }
-    return '';
+    return document.cookie.split('; ').reduce((r, v) => {
+      const parts = v.split('=');
+      return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+    }, '');
   }
 
   function createSession() {
     let sid = getCookie(SESSION_COOKIE);
     if (!sid) {
-      sid = 'sess_' + Math.random().toString(16).substring(2) + Date.now().toString(16);
+      sid = 's_' + Math.random().toString(36).substring(2) + Date.now().toString(36);
       setCookie(SESSION_COOKIE, sid, COOKIE_EXP_DAYS);
     }
     return sid;
@@ -51,19 +45,31 @@
   }
 
   async function getVisitorCountry() {
-    // Deshabilitado: la CSP actual bloquea hosts externos. Se devuelve nulo sin fetch.
+    // Try session storage cache
+    try {
+      const cached = sessionStorage.getItem('visitorCountry');
+      if (cached) {
+        return JSON.parse(cached);
+      }
+    } catch (e) {}
+    // Fetch from public geoip service
+    try {
+      const res = await fetch('https://ipapi.co/json/');
+      if (res.ok) {
+        const j = await res.json();
+        const country = { country: j.country || null, country_name: j.country_name || null };
+        try { sessionStorage.setItem('visitorCountry', JSON.stringify(country)); } catch (e) {}
+        return country;
+      }
+    } catch (e) {
+      // ignore
+    }
     return { country: null, country_name: null };
   }
 
   function sendEvent(eventType, extra = {}) {
     if (!hasConsent()) return;
     const payload = buildPayload(eventType, extra);
-    // Promote certain fields (like element) to top-level when present
-    try {
-      if (extra && typeof extra === 'object' && extra.element) {
-        payload.element = String(extra.element).substring(0, 255);
-      }
-    } catch (e) {}
     // Inject cached country info if available (small optimization)
     try {
       const c = sessionStorage.getItem('visitorCountry');
@@ -146,21 +152,7 @@
       lastSent = now;
 
       const el = e.target;
-      const tag = (el && el.tagName ? el.tagName.toLowerCase() : 'element');
-      const id = el && el.id ? `#${el.id}` : '';
-      let classes = '';
-      try { if (el && el.classList && el.classList.length) { classes = '.' + Array.from(el.classList).slice(0,3).join('.'); } } catch(_) {}
-      const nameAttr = el && el.getAttribute && el.getAttribute('name') ? `[name="${el.getAttribute('name')}"]` : '';
-      const dataAction = el && el.getAttribute && el.getAttribute('data-action') ? `[data-action="${el.getAttribute('data-action')}"]` : '';
-      const roleAttr = el && el.getAttribute && el.getAttribute('role') ? `[role="${el.getAttribute('role')}"]` : '';
-      let hrefPart = '';
-      try {
-        if (tag === 'a') {
-          const href = el.getAttribute('href') || '';
-          if (href) hrefPart = `->${href.substring(0, 80)}`;
-        }
-      } catch(_) {}
-      const elDesc = `${tag}${id}${classes}${nameAttr}${dataAction}${roleAttr}${hrefPart}`;
+      const elDesc = (el.id ? `#${el.id}` : '') + (el.className ? `.${el.className.toString().split(' ').join('.')}` : '') || el.tagName;
       const payload = {
         element: elDesc,
         text: el.innerText?.substring(0, 100) || null,

@@ -1,5 +1,5 @@
 <?php
-define('BASE_URL', '/mostrador/');
+define('BASE_URL', '/');
 require_once __DIR__ . '/../src/core/db.php';
 function db() {
     global $conn;
@@ -21,13 +21,24 @@ class Config {
 
     $stmt->bind_param("s", $clave);
     $stmt->execute();
+
+    // Asegurar que el resultado esté disponible y evitar warnings si no hay filas
+    $stmt->store_result();
+    if ($stmt->num_rows === 0) {
+      $stmt->close();
+      return null; // clave no encontrada
+    }
+
+    $valor = null; // inicializar para evitar notices
     $stmt->bind_result($valor);
 
     if ($stmt->fetch()) {
       $cache[$clave] = $valor; // guarda en cache
+      $stmt->close();
       return $valor;
     }
 
+    $stmt->close();
     return null; // clave no encontrada
   }
 }

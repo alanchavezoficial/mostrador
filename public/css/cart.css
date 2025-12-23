@@ -1,49 +1,44 @@
 /* ================================================
-   CART PAGE - SPECIFIC STYLES
-   Estilos base de buttons y utilities están centralizados
+   CARRITO DE COMPRAS - ESTILOS ESPECÍFICOS
+   Los botones y formularios usan estilos de buttons.css y forms.css
    ================================================ */
-
-:root {
-  --cart-bg: #f8fafc;
-  --cart-card: #ffffff;
-  --cart-border: #e5e7eb;
-  --cart-text: #0f172a;
-  --cart-muted: #475569;
-  --cart-accent: #2563eb;
-  --cart-danger: #dc2626;
-}
 
 .cart-page {
   max-width: 1100px;
   margin: 32px auto;
   padding: 0 16px 48px;
-  color: var(--cart-text);
+  color: var(--color_texto);
 }
 
 .cart-page h1 {
   font-size: 28px;
   margin-bottom: 16px;
+  color: var(--color_titulo);
 }
+
+/* Tabla de productos del carrito */
 
 .cart-table {
   width: 100%;
   border-collapse: collapse;
-  background: var(--cart-card);
-  border: 1px solid var(--cart-border);
+  background: var(--color_card, var(--color_fondo));
+  border: 1px solid var(--border-muted);
   border-radius: 12px;
   overflow: hidden;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+  box-shadow: var(--shadow-soft);
 }
 
+
 .cart-table thead {
-  background: #eef2ff;
+  background: var(--color_header);
 }
+
 
 .cart-table th,
 .cart-table td {
   padding: 14px 16px;
   text-align: left;
-  border-bottom: 1px solid var(--cart-border);
+  border-bottom: 1px solid var(--border-muted);
   vertical-align: middle;
 }
 
@@ -68,47 +63,46 @@
   height: 64px;
   object-fit: cover;
   border-radius: 10px;
-  border: 1px solid var(--cart-border);
-  background: #fff;
+  border: 1px solid var(--border-muted);
+  background: var(--color_fondo);
 }
 
 .cart-table .product span {
   font-weight: 600;
-  color: var(--cart-text);
+  color: var(--color_texto);
 }
 
-/* Estilos de .qty-input y .btn-remove ahora están en forms.css y buttons.css */
+/* Los inputs de cantidad y botones de eliminar usan estilos de forms.css y buttons.css */
 
 .cart-table td:nth-child(2),
 .cart-table td:nth-child(4) {
   font-weight: 600;
 }
 
+/* Resumen del carrito */
 .cart-summary {
   margin-top: 18px;
   padding: 20px;
-  background: var(--cart-card);
-  border: 1px solid var(--cart-border);
+  background: var(--color_card);
+  border: 1px solid var(--border-muted);
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.05);
+  box-shadow: var(--shadow-soft);
 }
 
 .cart-summary p {
   margin: 0;
   font-size: 18px;
-  color: var(--cart-muted);
+  color: var(--tone-muted);
 }
 
 .cart-summary strong {
-  color: var(--cart-text);
+  color: var(--color_titulo);
   font-size: 20px;
 }
-
-/* Estilos de .btn-primary movidos a buttons.css */
 
 @media (max-width: 768px) {
   .cart-table th:nth-child(2),
@@ -149,14 +143,14 @@
 
   .cart-table tr {
     margin-bottom: 16px;
-    border: 1px solid var(--cart-border);
+    border: 1px solid var(--border-muted);
     border-radius: 12px;
     overflow: hidden;
   }
 
   .cart-table td {
     border: none;
-    border-bottom: 1px solid var(--cart-border);
+    border-bottom: 1px solid var(--border-muted);
     position: relative;
     padding-left: 48px;
   }
@@ -172,7 +166,7 @@
     top: 50%;
     transform: translateY(-50%);
     font-weight: 700;
-    color: var(--cart-muted);
+    color: var(--tone-muted);
     font-size: 12px;
     text-transform: uppercase;
     letter-spacing: 0.4px;

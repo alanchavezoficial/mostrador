@@ -1,0 +1,437 @@
+/**
+ * Responsive Enhancements - Mejoras Responsive
+ * Complementa los estilos existentes con mejoras adicionales
+ */
+
+/* ============================================
+   BREAKPOINTS
+   ============================================ */
+
+/* 
+   xs: < 576px  (móviles)
+   sm: 576px    (móviles grandes)
+   md: 768px    (tablets)
+   lg: 992px    (desktop)
+   xl: 1200px   (desktop grande)
+   xxl: 1400px  (pantallas grandes)
+*/
+
+/* ============================================
+   UTILIDADES RESPONSIVE
+   ============================================ */
+
+/* Ocultar elementos según breakpoint */
+/* Responsive visibility utilities - unified */
+.show-mobile, .show-tablet, .show-desktop {
+    display: none !important;
+}
+
+@media (max-width: 575px) {
+    .hide-xs { display: none !important; }
+}
+@media (min-width: 576px) and (max-width: 767px) {
+    .hide-sm { display: none !important; }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+    .hide-md { display: none !important; }
+}
+@media (min-width: 992px) and (max-width: 1199px) {
+    .hide-lg { display: none !important; }
+}
+@media (min-width: 1200px) {
+    .hide-xl { display: none !important; }
+}
+
+@media (max-width: 767px) {
+    .show-mobile { display: block !important; }
+    .hide-mobile { display: none !important; }
+}
+@media (min-width: 768px) and (max-width: 991px) {
+    .show-tablet { display: block !important; }
+    .hide-tablet { display: none !important; }
+}
+@media (min-width: 992px) {
+    .show-desktop { display: block !important; }
+}
+    .hide-desktop { display: none !important; }
+}
+
+/* ============================================
+   CONTENEDORES RESPONSIVE
+   ============================================ */
+
+.container-fluid {
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+.container-responsive {
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+
+@media (min-width: 576px) {
+    .container-responsive {
+        max-width: 540px;
+    }
+}
+
+@media (min-width: 768px) {
+    .container-responsive {
+        max-width: 720px;
+    }
+}
+
+@media (min-width: 992px) {
+    .container-responsive {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 1200px) {
+    .container-responsive {
+        max-width: 1140px;
+    }
+}
+
+@media (min-width: 1400px) {
+    .container-responsive {
+        max-width: 1320px;
+    }
+}
+
+/* ============================================
+   GRID RESPONSIVE
+   ============================================ */
+
+.row-responsive {
+    display: flex;
+    flex-wrap: wrap;
+    margin-right: -15px;
+    margin-left: -15px;
+}
+
+.col-responsive {
+    flex: 1;
+    padding-right: 15px;
+    padding-left: 15px;
+}
+
+/* Columnas móviles */
+@media (max-width: 767px) {
+    .col-xs-12 { flex: 0 0 100%; max-width: 100%; }
+    .col-xs-6 { flex: 0 0 50%; max-width: 50%; }
+    .col-xs-4 { flex: 0 0 33.333%; max-width: 33.333%; }
+    .col-xs-3 { flex: 0 0 25%; max-width: 25%; }
+}
+
+/* Columnas tablet */
+@media (min-width: 768px) and (max-width: 991px) {
+    .col-md-12 { flex: 0 0 100%; max-width: 100%; }
+    .col-md-6 { flex: 0 0 50%; max-width: 50%; }
+    .col-md-4 { flex: 0 0 33.333%; max-width: 33.333%; }
+    .col-md-3 { flex: 0 0 25%; max-width: 25%; }
+}
+
+/* Columnas desktop */
+@media (min-width: 992px) {
+    .col-lg-12 { flex: 0 0 100%; max-width: 100%; }
+    .col-lg-6 { flex: 0 0 50%; max-width: 50%; }
+    .col-lg-4 { flex: 0 0 33.333%; max-width: 33.333%; }
+    .col-lg-3 { flex: 0 0 25%; max-width: 25%; }
+}
+
+/* ============================================
+   TIPOGRAFÍA RESPONSIVE
+   ============================================ */
+
+/* Tamaños de fuente fluidos */
+.text-responsive {
+    font-size: clamp(1rem, 2.5vw, 1.5rem);
+}
+
+.heading-responsive-h1 {
+    font-size: clamp(2rem, 5vw, 3.5rem);
+    line-height: 1.2;
+}
+
+.heading-responsive-h2 {
+    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    line-height: 1.3;
+}
+
+.heading-responsive-h3 {
+    font-size: clamp(1.5rem, 3vw, 2rem);
+    line-height: 1.4;
+}
+
+/* Alineación responsive */
+@media (max-width: 767px) {
+    .text-xs-center { text-align: center !important; }
+    .text-xs-left { text-align: left !important; }
+    .text-xs-right { text-align: right !important; }
+}
+
+/* ============================================
+   ESPACIADO RESPONSIVE
+   ============================================ */
+
+/* Padding responsive */
+@media (max-width: 767px) {
+    .p-xs-0 { padding: 0 !important; }
+    .p-xs-1 { padding: 0.25rem !important; }
+    .p-xs-2 { padding: 0.5rem !important; }
+    .p-xs-3 { padding: 1rem !important; }
+    .p-xs-4 { padding: 1.5rem !important; }
+    .p-xs-5 { padding: 3rem !important; }
+}
+
+/* Margin responsive */
+@media (max-width: 767px) {
+    .m-xs-0 { margin: 0 !important; }
+    .m-xs-1 { margin: 0.25rem !important; }
+    .m-xs-2 { margin: 0.5rem !important; }
+    .m-xs-3 { margin: 1rem !important; }
+    .m-xs-4 { margin: 1.5rem !important; }
+    .m-xs-5 { margin: 3rem !important; }
+}
+
+/* ============================================
+   IMÁGENES RESPONSIVE
+   ============================================ */
+
+.img-responsive {
+    max-width: 100%;
+    height: auto;
+    display: block;
+}
+
+.img-cover {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.img-contain {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+/* ============================================
+   TABLAS RESPONSIVE
+   ============================================ */
+
+@media (max-width: 767px) {
+    .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .table-responsive table {
+        min-width: 600px;
+    }
+    
+    /* Tabla en modo stack */
+    .table-stack {
+        border: 0;
+    }
+    
+    .table-stack thead {
+        display: none;
+    }
+    
+    .table-stack tr {
+        display: block;
+        margin-bottom: 1rem;
+        border: 1px solid var(--border-muted);
+    }
+    
+    .table-stack td {
+        display: block;
+        text-align: right;
+        padding: 0.75rem;
+        border-bottom: 1px solid var(--border-muted);
+    }
+    
+    .table-stack td:last-child {
+        border-bottom: 0;
+    }
+    
+    .table-stack td::before {
+        content: attr(data-label);
+        float: left;
+        font-weight: bold;
+    }
+}
+
+/* ============================================
+   NAVEGACIÓN RESPONSIVE
+   ============================================ */
+
+@media (max-width: 991px) {
+    .nav-responsive {
+        flex-direction: column;
+    }
+    
+    .nav-responsive li {
+        width: 100%;
+    }
+    
+    .nav-responsive a {
+        display: block;
+        padding: 1rem;
+        border-bottom: 1px solid var(--border-muted);
+    }
+}
+
+/* ============================================
+   TARJETAS RESPONSIVE
+   ============================================ */
+
+@media (max-width: 767px) {
+    .card-responsive {
+        margin-bottom: 1rem;
+    }
+    
+    .card-horizontal {
+        flex-direction: column;
+    }
+    
+    .card-horizontal img {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* ============================================
+   FORMULARIOS RESPONSIVE
+   ============================================ */
+
+@media (max-width: 767px) {
+    .form-responsive input,
+    .form-responsive select,
+    .form-responsive textarea,
+    .form-responsive button {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .form-responsive .form-row {
+        flex-direction: column;
+    }
+    
+    .form-responsive label {
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* ============================================
+   BOTONES RESPONSIVE
+   ============================================ */
+
+@media (max-width: 767px) {
+    .btn-responsive {
+        width: 100%;
+        display: block;
+        margin-bottom: 0.5rem;
+    }
+    
+    .btn-group-responsive {
+        display: flex;
+        flex-direction: column;
+    }
+    
+    .btn-group-responsive .btn {
+        width: 100%;
+        margin-bottom: 0.5rem;
+    }
+}
+
+/* ============================================
+   FLEXBOX UTILITIES RESPONSIVE
+   ============================================ */
+
+@media (max-width: 767px) {
+    .flex-xs-column { flex-direction: column !important; }
+    .flex-xs-row { flex-direction: row !important; }
+    .justify-xs-start { justify-content: flex-start !important; }
+    .justify-xs-center { justify-content: center !important; }
+    .justify-xs-end { justify-content: flex-end !important; }
+    .align-xs-start { align-items: flex-start !important; }
+    .align-xs-center { align-items: center !important; }
+    .align-xs-end { align-items: flex-end !important; }
+}
+
+/* ============================================
+   VIEWPORT ESPECÍFICO
+   ============================================ */
+
+/* Landscape en móviles */
+@media (max-height: 500px) and (orientation: landscape) {
+    .hide-landscape { display: none !important; }
+    
+    /* Reducir padding en landscape */
+    .container-responsive {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+}
+
+/* Portrait en tablets */
+@media (min-width: 768px) and (max-width: 1024px) and (orientation: portrait) {
+    .tablet-portrait-full {
+        width: 100%;
+    }
+}
+
+/* ============================================
+   TOUCH IMPROVEMENTS
+   ============================================ */
+
+@media (hover: none) and (pointer: coarse) {
+    /* Aumentar área de toque en dispositivos táctiles */
+    button,
+    a,
+    .clickable {
+        min-height: 44px;
+        min-width: 44px;
+        padding: 12px;
+    }
+    
+    /* Eliminar hover effects en táctiles */
+    *:hover {
+        -webkit-tap-highlight-color: transparent;
+    }
+}
+
+/* ============================================
+   PRINT STYLES
+   ============================================ */
+
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .print-only {
+        display: block !important;
+    }
+    
+    a[href]:after {
+        content: " (" attr(href) ")";
+    }
+    
+    .container-responsive {
+        width: 100%;
+        max-width: 100%;
+    }
+}

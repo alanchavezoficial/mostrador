@@ -4,9 +4,8 @@ require_once __DIR__ . '/../../../core/auth.php';
 <form method="POST"
   action="<?= BASE_URL ?>admin/articulos/editar"
   enctype="multipart/form-data"
-  data-ajax-form
-  data-ajax
-  class="form-block">
+  class="form-block"
+  id="edit-article-form">
   <?= csrf_field(); ?>
 
   <h2 class="form-title">Editar artículo</h2>
@@ -23,18 +22,18 @@ require_once __DIR__ . '/../../../core/auth.php';
 
   <div class="form-group">
     <label for="edit-content">Contenido</label>
-    <textarea name="content"
-              id="edit-content"
-              rows="10"
-              class="form-input" required><?= htmlspecialchars($article['content']) ?></textarea>
+    <div id="edit-content-editor" class="rich-editor"></div>
+    <input type="hidden" id="edit-content" name="content" required>
   </div>
+
 
   <div class="form-group">
     <label for="edit-author">Autor</label>
     <input type="text" name="author"
            id="edit-author"
-           value="<?= htmlspecialchars($article['author']) ?>"
-           class="form-input">
+           value="<?= htmlspecialchars($userName ?? '') ?>"
+           class="form-input" disabled>
+    <input type="hidden" name="author" value="<?= htmlspecialchars($userName ?? '') ?>">
   </div>
 
   <div class="form-group-inline">
@@ -106,3 +105,64 @@ require_once __DIR__ . '/../../../core/auth.php';
     <button type="submit" class="btn-primary">💾 Guardar cambios</button>
   </div>
 </form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar el editor de contenido
+    const editor = new RichEditor('edit-content-editor');
+    
+    // Cargar el contenido existente
+    editor.setContent(<?= json_encode($article['content']) ?>);
+    
+    // Manejar el envío del formulario
+    document.getElementById('edit-article-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const contentInput = document.getElementById('edit-content');
+      const editorContent = editor.getContent();
+      
+      // Validar que haya contenido
+      if (!editorContent || !editorContent.trim() || editorContent.trim() === '<br>') {
+        showToast('El contenido no puede estar vacío', 'error', 5000);
+        return false;
+      }
+      
+      // Copiar el contenido del editor al input oculto
+      contentInput.value = editorContent;
+      
+      // Enviar por AJAX
+      const formData = new FormData(this);
+      
+      fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json().catch(() => response))
+      .then(data => {
+        if (data.success || (data.status === 'success')) {
+          showToast('✅ Artículo actualizado correctamente', 'success', 3000);
+          setTimeout(() => {
+            window.location.href = '<?= BASE_URL ?>admin/articulos?msg=edited';
+          }, 1500);
+        } else {
+          const errorMsg = data.message || data.error || 'Error al actualizar el artículo';
+          showToast('❌ ' + errorMsg, 'error', 5000);
+        }
+      })
+      .catch(error => {
+        showToast('❌ Error en la conexión: ' + error.message, 'error', 5000);
+      });
+    });
+
+    // Mantener sincronizado mientras escribe
+    const editorElement = document.querySelector('#edit-content-editor .rich-editor-content');
+    if (editorElement) {
+      editorElement.addEventListener('input', function() {
+        document.getElementById('edit-content').value = this.innerHTML;
+      });
+    }
+  });
+</script>

@@ -8,7 +8,18 @@ require_once __DIR__ . '/csrf.php';
 // Ruta limpia sin BASE_URL
 $uri  = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
 $base = BASE_URL;
-$path = trim(str_replace($base, '', $uri), '/');
+
+// Normaliza la ruta quitando solo el prefijo BASE_URL del inicio.
+// Cuando BASE_URL es '/' (raíz), no usar str_replace porque eliminaría todos los '/'.
+if ($base === '/' || $base === '') {
+    $path = ltrim($uri, '/');
+} else {
+    // Si la URI comienza con el prefijo BASE_URL, recórtalo; si no, deja la URI tal cual.
+    $path = (strpos($uri, $base) === 0)
+        ? ltrim(substr($uri, strlen($base)), '/')
+        : ltrim($uri, '/');
+}
+
 $segments = $path !== '' ? explode('/', $path) : [];
 
 // --------------------------
@@ -76,7 +87,12 @@ $getActions = [
     'admin/pedidos/editar-form'         => ['controller' => 'OrderController',       'method' => 'orderEditForm'],
     'admin/pedidos/factura'             => ['controller' => 'OrderController',       'method' => 'adminInvoice'],
     'admin/dashboard/events'            => ['controller' => 'AnalyticsController',   'method' => 'recent'],
-    'admin/dashboard/data'              => ['controller' => 'AnalyticsController',   'method' => 'stats']
+    'admin/dashboard/data'              => ['controller' => 'AnalyticsController',   'method' => 'stats'],
+    'admin/analytics/archive'           => ['controller' => 'AnalyticsController',   'method' => 'archive'],
+    'admin/analytics/reports'           => ['controller' => 'AnalyticsController',   'method' => 'reports'],
+    'admin/analytics/current-month'     => ['controller' => 'AnalyticsController',   'method' => 'currentMonthCsv'],
+    'admin/analytics/counts'            => ['controller' => 'AnalyticsController',   'method' => 'counts'],
+    'admin/analytics/export-recent'     => ['controller' => 'AnalyticsController',   'method' => 'exportRecent'],
 ];
 
 if ($_SERVER['REQUEST_METHOD'] === 'GET' && array_key_exists($path, $getActions)) {

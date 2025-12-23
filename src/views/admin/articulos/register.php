@@ -5,7 +5,7 @@ global $conn;
 
 <h2 class="form-title">📝 Publicar nuevo artículo</h2>
 
-<form method="POST" action="<?= BASE_URL ?>admin/articulos/crear" class="form-block" enctype="multipart/form-data">
+<form method="POST" action="<?= BASE_URL ?>admin/articulos/crear" class="form-block" enctype="multipart/form-data" id="article-form">
   <?= csrf_field(); ?>
 
   <!-- Título del artículo -->
@@ -16,14 +16,16 @@ global $conn;
 
   <!-- Contenido -->
   <div class="form-group">
-    <label for="content">Contenido:</label>
-    <textarea id="content" name="content" rows="6" required></textarea>
+    <label for="content-editor">Contenido:</label>
+    <div id="content-editor" class="rich-editor"></div>
+    <input type="hidden" id="content" name="content" required>
   </div>
 
   <!-- Autor -->
   <div class="form-group">
     <label for="author">Autor:</label>
-    <input type="text" id="author" name="author" value="">
+    <input type="text" id="author" name="author" value="<?= htmlspecialchars($userName ?? '') ?>" disabled>
+    <input type="hidden" name="author" value="<?= htmlspecialchars($userName ?? '') ?>">
   </div>
 
   <!-- Visibilidad y destacado -->
@@ -40,6 +42,20 @@ global $conn;
       <input type="checkbox" name="is_carousel">
       Mostrar en carrusel (máx. 5)
     </label>
+  </div>
+
+  <!-- Producto enlazado -->
+  <div class="form-group">
+    <label for="product_id">Enlazar a un producto (opcional):</label>
+    <select id="product_id" name="product_id">
+      <option value="">-- Sin enlace a producto --</option>
+      <?php
+      $prods = $conn->query("SELECT id, nombre FROM products ORDER BY nombre");
+      while ($p = $prods->fetch_assoc()):
+      ?>
+        <option value="<?= $p['id'] ?>"><?= htmlspecialchars($p['nombre']) ?></option>
+      <?php endwhile; ?>
+    </select>
   </div>
 
   <!-- Productos relacionados -->
@@ -76,5 +92,62 @@ global $conn;
   </div>
 
   <!-- Botón de envío -->
-  <button type="submit" class="btn-primary">📤 Publicar artículo</button>
+  <button type="submit" class="btn btn-primary">📤 Publicar artículo</button>
 </form>
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar el editor de contenido
+    const editor = new RichEditor('content-editor');
+    
+    // Manejar el envío del formulario
+    document.getElementById('article-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const contentInput = document.getElementById('content');
+      const editorContent = editor.getContent();
+      
+      // Validar que haya contenido
+      if (!editorContent || !editorContent.trim() || editorContent.trim() === '<br>') {
+        showToast('El contenido no puede estar vacío', 'error', 5000);
+        return false;
+      }
+      
+      // Copiar el contenido del editor al input oculto
+      contentInput.value = editorContent;
+      
+      // Enviar por AJAX
+      const formData = new FormData(this);
+      
+      fetch(this.action, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest'
+        }
+      })
+      .then(response => response.json().catch(() => response))
+      .then(data => {
+        if (data.success || (data.status === 'success')) {
+          showToast('✅ Artículo publicado correctamente', 'success', 3000);
+          setTimeout(() => {
+            window.location.href = '<?= BASE_URL ?>admin/articulos?msg=created';
+          }, 1500);
+        } else {
+          const errorMsg = data.message || data.error || 'Error al publicar el artículo';
+          showToast('❌ ' + errorMsg, 'error', 5000);
+        }
+      })
+      .catch(error => {
+        showToast('❌ Error en la conexión: ' + error.message, 'error', 5000);
+      });
+    });
+
+    // Mantener sincronizado mientras escribe
+    const editorElement = document.querySelector('#content-editor .rich-editor-content');
+    if (editorElement) {
+      editorElement.addEventListener('input', function() {
+        document.getElementById('content').value = this.innerHTML;
+      });
+    }
+  });
+</script>

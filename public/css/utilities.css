@@ -1,8 +1,12 @@
 /* ================================================
-   UNIFIED LAYOUT & UTILITIES SYSTEM
+   SISTEMA DE LAYOUT Y UTILIDADES
+   Clases auxiliares para espaciado, grids, alineación y más
    ================================================ */
 
-/* Container System */
+/* ================================================
+   SISTEMA DE CONTENEDORES
+   ================================================ */
+
 .container {
     max-width: 1200px;
     margin: 0 auto;
@@ -22,7 +26,10 @@
     padding: 0 2em;
 }
 
-/* Section Spacing */
+/* ================================================
+   ESPACIADO DE SECCIONES
+   ================================================ */
+
 .section,
 section {
     margin: 2.5em 0;
@@ -39,12 +46,16 @@ section {
     padding: 2em 0;
 }
 
-/* Section Headers */
+/* ================================================
+   ENCABEZADOS DE SECCIÓN
+   ================================================ */
+
+
 .section-header,
 section h2 {
     font-size: 2em;
     margin-bottom: 1.5em;
-    color: var(--color_primario);
+    color: var(--color_titulo);
     text-align: center;
     font-weight: 700;
 }
@@ -56,25 +67,32 @@ section h2 {
 
 .section-header-wrapper h2 {
     font-size: 2.2em;
-    color: var(--color_primario);
+    color: var(--color_titulo);
     margin: 0 0 0.3em 0;
     font-weight: 700;
 }
 
 .section-subtitle {
     font-size: 1.1em;
-    color: var(--color_texto);
+    color: var(--color_subtitulo);
     margin: 0;
-    opacity: 0.8;
+    opacity: 0.9;
 }
 
-/* Dividers */
+/* ================================================
+   DIVISORES
+   ================================================ */
+
 .divider,
 .section-divider,
 hr {
     border: none;
     height: 2px;
-    background: linear-gradient(to right, var(--color_primario), var(--color_acento));
+    background: linear-gradient(
+        to right, 
+        var(--color_primario), 
+        var(--color_acento)
+    );
     margin: 2em 0;
     border-radius: 2px;
 }
@@ -89,7 +107,10 @@ hr {
     margin: 3em 0;
 }
 
-/* Grid System */
+/* ================================================
+   SISTEMA DE GRIDS
+   ================================================ */
+
 .grid {
     display: grid;
     gap: 1.5em;
@@ -242,10 +263,10 @@ hr {
 
 .text-primary { color: var(--color_primario); }
 .text-accent { color: var(--color_acento); }
-.text-muted { color: #6b7280; opacity: 0.8; }
-.text-danger { color: #dc2626; }
-.text-success { color: #10b981; }
-.text-warning { color: #f59e0b; }
+.text-muted { color: var(--tone-muted); opacity: 0.8; }
+.text-danger { color: var(--tone-danger); }
+.text-success { color: var(--tone-success); }
+.text-warning { color: var(--tone-warning); }
 
 .text-truncate {
     overflow: hidden;
@@ -256,8 +277,8 @@ hr {
 /* Background Utilities */
 .bg-primary { background: var(--color_primario); }
 .bg-accent { background: var(--color_acento); }
-.bg-light { background: #f8fafc; }
-.bg-white { background: white; }
+.bg-light { background: var(--bg-muted); }
+.bg-white { background: var(--color_fondo); }
 .bg-gradient {
     background: linear-gradient(135deg, var(--color_primario), var(--color_acento));
 }
@@ -274,9 +295,9 @@ hr {
 .rounded-full { border-radius: 9999px; }
 
 /* Shadow Utilities */
-.shadow-sm { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
-.shadow { box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
-.shadow-lg { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); }
+.shadow-sm { box-shadow: 0 1px 3px color-mix(in srgb, var(--color_texto), transparent 90%); }
+.shadow { box-shadow: 0 4px 12px color-mix(in srgb, var(--color_texto), transparent 88%); }
+.shadow-lg { box-shadow: 0 8px 24px color-mix(in srgb, var(--color_texto), transparent 85%); }
 .shadow-none { box-shadow: none; }
 
 /* Display Utilities */

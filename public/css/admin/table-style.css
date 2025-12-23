@@ -1,3 +1,4 @@
+
 .table-block {
   max-width: 100%;
   margin: 1.5em auto;
@@ -5,7 +6,7 @@
   background: var(--color_fondo);
   border: 1px solid var(--color_acento);
   border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-soft);
 }
 
 .table-title {
@@ -22,15 +23,22 @@
 .admin-table th,
 .admin-table td {
   padding: 0.75em 1em;
-  border: 1px solid var(--color_acento);
+  border: 1px solid var(--table_border_color, var(--color_acento));
   vertical-align: middle;
+  color: var(--color_texto);
 }
 
+
 .admin-table th {
-  background: var(--color_fondo);
-  color: var(--color_texto);
+  background: var(--color_header);
+  color: var(--color_titulo);
   font-weight: bold;
   text-align: left;
+  border-color: var(--border-muted);
+}
+
+.admin-table tbody tr {
+  background: var(--color_fondo);
 }
 
 .admin-table th.col-actions,
@@ -48,6 +56,20 @@
 .admin-table img.table-thumb {
   max-width: 60px;
   border-radius: 4px;
+}
+
+.table-thumb-placeholder {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color_fondo);
+  border: 1px solid var(--border-muted);
+  border-radius: 4px;
+  color: var(--tone-muted);
+  font-weight: bold;
+  margin: 0 auto;
 }
 
 .admin-table tbody tr:hover {

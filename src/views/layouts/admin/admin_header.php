@@ -18,6 +18,15 @@
   <link rel="stylesheet" href="<?= BASE_URL ?>public/css/admin/shared.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>public/css/admin/menu.css">
   <link rel="stylesheet" href="<?= BASE_URL ?>public/css/admin/toast.css">
+  
+  <!-- Mejoras UI/UX -->
+  <link rel="stylesheet" href="<?= BASE_URL ?>public/css/animations.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>public/css/skeleton.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>public/css/responsive.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>public/css/accessibility.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>public/css/table.css">
+  <link rel="stylesheet" href="<?= BASE_URL ?>public/css/rich-editor.css">
+  
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <?php $csrfToken = csrf_token(); ?>
   <meta name="csrf-token" content="<?= $csrfToken ?>">
@@ -29,7 +38,7 @@
 <body>
   <header>
     <h1>Panel de Administración</h1>
-    <button id="menu-toggle" class="menu-toggle" aria-label="Abrir menú" aria-expanded="false">☰</button>
+    <button id="menu-toggle" class="menu-toggle only-mobile" aria-label="Abrir menú" aria-expanded="false">☰</button>
     <nav>
       <a href="<?= BASE_URL ?>admin/dashboard">
         <p>Dashboard</p>

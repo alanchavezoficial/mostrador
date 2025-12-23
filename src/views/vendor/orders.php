@@ -310,7 +310,7 @@ if (!isset($user) || $user['role'] !== 'vendedor') {
                         <td><?php echo $order['item_count'] ?? 0; ?></td>
                         <td>
                             <div class="order-actions">
-                                <a href="/mostrador/vendor/ordenes/<?php echo $order['id']; ?>" class="btn-view">Ver</a>
+                                <a href="<?= BASE_URL ?>vendor/ordenes/<?php echo $order['id']; ?>" class="btn-view">Ver</a>
                                 <button class="btn-update" onclick="openUpdateModal(<?php echo $order['id']; ?>, '<?php echo $order['status']; ?>')">Actualizar</button>
                             </div>
                         </td>
@@ -400,7 +400,7 @@ function submitUpdateStatus(event) {
         return;
     }
     
-    fetch(`/mostrador/vendor/ordenes/${currentOrderId}/actualizar-estado`, {
+    fetch('<?= BASE_URL ?>vendor/ordenes/' + currentOrderId + '/actualizar-estado', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

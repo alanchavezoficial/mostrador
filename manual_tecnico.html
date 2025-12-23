@@ -302,6 +302,7 @@
           <li><a href="#guia-instalacion">18. Guía de Instalación</a></li>
           <li><a href="#manual-usuario">19. Manual de Usuario</a></li>
           <li><a href="#actualizaciones">20. Registro de Actualizaciones</a></li>
+          <li><a href="#roadmap">21. Hoja de Ruta (Roadmap)</a></li>
         </ol>
       </nav>
     </aside>
@@ -855,6 +856,59 @@
 ) ENGINE=InnoDB CHARSET=utf8mb4;</code></pre>
       <p><strong>Nota:</strong> Esta tabla se crea automáticamente mediante <code>AnalyticsController::ensureTableExists()</code></p>
 
+      <h4 style="color: #60a5fa; margin-top: 1.25rem;">🔧 Endpoints internos (Analytics)</h4>
+      <p>Esta sección documenta los endpoints internos usados por la administración para diagnosticar, exportar y archivar datos de analytics.</p>
+
+      <h5 style="margin-top:0.6rem">GET <code>/admin/analytics/counts</code></h5>
+      <p><strong>Descripción:</strong> Devuelve conteos rápidos y muestras para diagnóstico (total, últimos 7/30/60/90 días, evento más antiguo). Si se pasa <code>?days=N</code> incluye <code>cutoff</code> (fecha usada) y <code>older</code> (eventos con <code>created_at &lt; cutoff</code>) y muestra filas de ejemplo.</p>
+      <p><strong>Autenticación:</strong> Dueno / Admin (sesión de navegador requerida)</p>
+      <pre><code>Ejemplo: GET <?= BASE_URL ?? '/' ?>admin/analytics/counts?days=1
+Respuesta: {
+  "total": 665,
+  "last": {"7":665,"30":665,"60":665,"90":665},
+  "oldest": "2025-12-19 14:23:39",
+  "cutoff": "2025-12-19 04:21:48",
+  "older": 0,
+  "sample_oldest": [{"id":1,"created_at":"2025-12-19 14:23:39","event_type":"pageview","path":"/"}, ...]
+}</code></pre>
+
+      <h5 style="margin-top:0.6rem">GET <code>/admin/analytics/archive</code></h5>
+      <p><strong>Descripción:</strong> Genera un PDF resumen y un CSV de eventos <em>anteriores</em> al corte (<code>created_at &lt; cutoff</code>) y opcionalmente los elimina. Usa <code>?days=N</code> y <code>&keep=1</code> para no borrar.</p>
+      <p><strong>Autenticación:</strong> Dueno / Admin (sesión de navegador requerida)</p>
+      <pre><code>Ejemplo: GET <?= BASE_URL ?? '/' ?>admin/analytics/archive?days=60&amp;keep=1
+Respuesta: {"ok":true,"pdf":"/public/uploads/analytics_reports/analytics_report_20251220_041407.pdf","csv":"/public/uploads/analytics_reports/analytics_report_20251220_041407.csv","csv_rows":1234,"deleted":0,"kept":true}
+Logs: storage/logs/analytics/archive.log</code></pre>
+
+      <h5 style="margin-top:0.6rem">GET <code>/admin/analytics/export-recent</code></h5>
+      <p><strong>Descripción:</strong> Descarga un CSV con eventos <em>recientes</em> (>= cutoff) sin borrar nada. Útil cuando no hay eventos más antiguos pero querés exportar lo que hay.</p>
+      <p><strong>Parámetros:</strong> <code>?days=N</code> (ej. 1, 7, 30).</p>
+      <pre><code>Ejemplo: GET <?= BASE_URL ?? '/' ?>admin/analytics/export-recent?days=1
+Devuelve: CSV adjunto con filas que cumplen created_at &gt;= cutoff</code></pre>
+
+      <h5 style="margin-top:0.6rem">GET <code>/admin/analytics/reports</code></h5>
+      <p><strong>Descripción:</strong> Lista reportes (PDF/CSV) ya generados en <code>public/uploads/analytics_reports/</code>.</p>
+      <pre><code>Ejemplo: GET <?= BASE_URL ?? '/' ?>admin/analytics/reports
+Respuesta: { "items": [{"name":"analytics_report_20251220_041407.pdf","url":"/public/uploads/analytics_reports/analytics_report_20251220_041407.pdf","size":12345}, ...] }</code></pre>
+
+      <h5 style="margin-top:0.6rem">GET <code>/admin/dashboard/events</code> &amp; GET <code>/admin/dashboard/data</code></h5>
+      <p><strong>Descripción:</strong> Endpoints usados por el dashboard para mostrar eventos recientes y estadísticas agregadas (pageviews, top clicks, country breakdown, etc.). Soportan filtros (from/to, group, event_type) y formatos CSV para exportar.</p>
+      <pre><code>Ejemplo: GET <?= BASE_URL ?? '/' ?>admin/dashboard/events?limit=25&amp;page=1
+Ejemplo: GET <?= BASE_URL ?? '/' ?>admin/dashboard/data?format=csv&amp;group=day</code></pre>
+
+      <h5 style="margin-top:0.6rem">POST <code>/analytics/collect</code></h5>
+      <p><strong>Descripción:</strong> Endpoint público para ingestión de eventos desde el cliente. Soporta payload individual (<code>{event_type: 'pageview', ...}</code>) o batch (<code>{events: [...]}</code>).</p>
+      <pre><code>Ejemplo: POST <?= BASE_URL ?? '/' ?>analytics/collect
+Payload: {"events":[{"event_type":"click","session_id":"abc","path":"/p/1","metadata":{"x":10}}]}
+Respuesta: {"ok":true}</code></pre>
+
+      <p><strong>Logs y archivos:</strong></p>
+      <ul>
+        <li><code>storage/logs/analytics/archive.log</code> — registros de intentos de archivado y export (incluye cutoffs y conteos)</li>
+        <li><code>public/uploads/analytics_reports/</code> — PDFs y CSVs generados por archive/export-recent</li>
+      </ul>
+
+      <p><strong>Notas de seguridad y uso:</strong> Todos los endpoints de administración requieren sesión Dueno/Admin. No expongas estas rutas públicamente sin protección extra. Para llamadas desde scripts, reutiliza la sesión de navegador o añade transporte seguro con cookies autenticadas.</p>
+
       <h3>9.6 Diagrama de Relaciones</h3>
       <pre style="background: var(--code-bg); padding: 1.5rem; border-radius: 8px; overflow-x: auto; font-size: 0.85em;"><code>users (1) ←→ (N) cart
 users (1) ←→ (N) orders
@@ -912,7 +966,7 @@ ORDER BY (data_length + index_length) DESC;</code></pre>
 -- Credenciales configuradas en config/.env:
 DB_HOST=localhost
 DB_USER=mostrador_app
-DB_PASS=M0str@d0r_S3cur3_2025!
+DB_PASS=REDACTED (set in config/.env)
 DB_NAME=tienda_props
 DB_PORT=3306
 
@@ -1074,7 +1128,7 @@ Automatizar futuro (agregar a cron o Windows Scheduler):
 
 # O en PowerShell (Windows):
 $backupPath = "D:\backups\tienda_props_$(Get-Date -Format 'yyyy-MM-dd').sql"
-& "D:\xampp\mysql\bin\mysqldump.exe" -u mostrador_app -pM0str@d0r_S3cur3_2025! tienda_props > $backupPath</code></pre>
+& "D:\xampp\mysql\bin\mysqldump.exe" -u mostrador_app -p'<REDACTED>' tienda_props > $backupPath</code></pre>
 
       <h4 style="color: #10b981; margin-top: 1.5rem;">📊 Auditoría y Logging - IMPLEMENTADO</h4>
 
@@ -2302,6 +2356,240 @@ VALUES ('Admin', 'admin@shop.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.
           <p style="background: rgba(16,185,129,0.15); padding: 0.5rem 0.75rem; border-left: 2px solid #10b981; margin: 0; font-size: 0.9rem; border-radius: 4px;"><code>src/views/layouts/header.php</code></p>
         </div>
       </div>
+      
+      <h2 id="roadmap">21. Hoja de Ruta (Roadmap) - Próximas Mejoras</h2>
+      
+      <p style="color: var(--muted); margin-bottom: 2rem;">Planeamiento estratégico de funcionalidades, mejoras técnicas y optimizaciones para los próximos meses.</p>
+      
+      <!-- Q1 2026 -->
+      <div style="background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <h3 style="border: none; margin: 0 0 1.5rem; padding: 0; color: #60a5fa;">📅 Q1 2026 (Enero - Marzo)</h3>
+        <p style="color: var(--muted); margin-bottom: 1.5rem;"><strong>Enfoque:</strong> Estabilidad, Testing y UX</p>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #f59e0b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #f59e0b; font-size: 1.05rem;">🧪 Testing Integral</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Implementar suite de tests unitarios (PHPUnit) para controladores</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Tests de integración para flujos críticos (carrito, checkout, pagos)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">E2E testing con Playwright (ya iniciado) para todas las rutas públicas</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Coverage > 70% en código crítico</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #f59e0b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #f59e0b; font-size: 1.05rem;">🎨 Mejoras UI/UX</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Dark mode completo (ya hay variables, falta activación en UI)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Transiciones y animaciones en componentes clave</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Skeleton loaders para tablas y listas</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Responsive refinement: tablet 7-10\" y mobile < 480px</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Accessibility audit (WCAG 2.1 AA)</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #f59e0b; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #f59e0b; font-size: 1.05rem;">⚡ Optimización de Performance</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Lazy loading de imágenes en catálogo (Intersection Observer)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Compresión WebP + fallback JPEG</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Minificación automática de CSS/JS en producción</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Cache HTTP (headers Cache-Control)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Database query optimization (N+1 analysis)</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #f59e0b; padding: 1rem; border-radius: 8px;">
+          <h4 style="margin: 0 0 0.75rem; color: #f59e0b; font-size: 1.05rem;">🔐 Hardening de Seguridad</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Rate limiting en endpoints sensibles (login, API)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Two-Factor Authentication (2FA) para admin</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Input validation whitelist en todos los formularios</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Security headers auditoría (CSP, X-Frame-Options, etc.)</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Q2 2026 -->
+      <div style="background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <h3 style="border: none; margin: 0 0 1.5rem; padding: 0; color: #60a5fa;">📅 Q2 2026 (Abril - Junio)</h3>
+        <p style="color: var(--muted); margin-bottom: 1.5rem;"><strong>Enfoque:</strong> Características Nuevas & Integraciones</p>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #8b5cf6; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #8b5cf6; font-size: 1.05rem;">💳 Sistema de Pagos Avanzado</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Integración Stripe (tarjeta de crédito, billetera digital)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Mercado Pago (transferencia bancaria, billetera)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Pagos recurrentes/suscripciones</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Webhooks para notificaciones de estado</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #8b5cf6; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #8b5cf6; font-size: 1.05rem;">📧 Email Marketing & Notificaciones</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Sistema de templates de email (confirmación, recuperación, newsletter)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Queue de emails con cron jobs</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Notificaciones push en navegador (Web Push API)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">SMS notifications (Twilio o similar)</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #8b5cf6; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #8b5cf6; font-size: 1.05rem;">🚚 Logística & Envíos</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Integración con courier (OCA, Andreani, etc.)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Tracking de envíos en tiempo real</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Generación automática de etiquetas</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Multi-warehouse support</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #8b5cf6; padding: 1rem; border-radius: 8px;">
+          <h4 style="margin: 0 0 0.75rem; color: #8b5cf6; font-size: 1.05rem;">📱 App Mobile (Progressive Web App)</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Service Workers para offline mode</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Manifest.json y home screen install</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Sincronización en background</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Push notifications nativas</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Q3 2026 -->
+      <div style="background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <h3 style="border: none; margin: 0 0 1.5rem; padding: 0; color: #60a5fa;">📅 Q3 2026 (Julio - Septiembre)</h3>
+        <p style="color: var(--muted); margin-bottom: 1.5rem;"><strong>Enfoque:</strong> Escala & Analytics Avanzado</p>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #ec4899; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #ec4899; font-size: 1.05rem;">📊 Analytics & BI Avanzado</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Dashboards personalizables por rol</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Reportes exportables (PDF, Excel, CSV)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Predicción de tendencias con ML básico</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Integración con Google Analytics 4</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Cohort analysis (comportamiento de usuarios)</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #ec4899; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #ec4899; font-size: 1.05rem;">🔍 SEO & Content Marketing</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Sitemap.xml dinámico y robots.txt optimizado</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Structured data (Schema.org para productos)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Open Graph meta tags (social sharing)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">URL slug generator con sanitización</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Automatic internal linking sugerencias</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #ec4899; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #ec4899; font-size: 1.05rem;">🤝 Programa de Afiliados</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Portal de afiliados con dashboard propio</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Generación de links únicos y códigos de referencia</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Tracking de conversiones y comisiones</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Pagos automáticos a afiliados</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #ec4899; padding: 1rem; border-radius: 8px;">
+          <h4 style="margin: 0 0 0.75rem; color: #ec4899; font-size: 1.05rem;">⚙️ API Pública RESTful</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Documentación OpenAPI/Swagger</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Rate limiting y API keys</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Webhooks para eventos del sistema</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Versioning (v1, v2, etc.)</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Q4 2026 -->
+      <div style="background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <h3 style="border: none; margin: 0 0 1.5rem; padding: 0; color: #60a5fa;">📅 Q4 2026 (Octubre - Diciembre)</h3>
+        <p style="color: var(--muted); margin-bottom: 1.5rem;"><strong>Enfoque:</strong> Escalabilidad & Infraestructura</p>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #10b981; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #10b981; font-size: 1.05rem;">🗄️ Arquitectura & DevOps</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Migración a entorno contenido (Docker)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">CI/CD pipeline con GitHub Actions / Jenkins</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Load balancing (nginx/haproxy)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">CDN para assets estáticos (Cloudflare, AWS CloudFront)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Database replication y backup automatizado</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #10b981; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #10b981; font-size: 1.05rem;">🧠 Búsqueda & Recomendaciones</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Full-text search mejorado (Elasticsearch o Solr)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Autocomplete con sugerencias</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Recomendaciones personalizadas (basadas en historial)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Faceted search y filtros dinámicos</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #10b981; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #10b981; font-size: 1.05rem;">🛒 Mejoras de Carrito & Checkout</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Carrito persistente (localStorage + sincronización)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">One-click checkout (express payment)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Abandoned cart recovery (emails automáticos)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Gift cards y tarjetas de regalo</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Backorder management</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #10b981; padding: 1rem; border-radius: 8px;">
+          <h4 style="margin: 0 0 0.75rem; color: #10b981; font-size: 1.05rem;">👥 Gestión Avanzada de Usuarios</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Social login (Google, Facebook, etc.)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Perfiles de clientes con datos demográficos</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Loyalty program / puntos de recompensa</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Segmentación de audiencia</li>
+          </ul>
+        </div>
+      </div>
+      
+      <!-- Backlog -->
+      <div style="background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2); border-radius: 12px; padding: 2rem; margin-bottom: 2rem;">
+        <h3 style="border: none; margin: 0 0 1.5rem; padding: 0; color: #60a5fa;">📦 Backlog Continuo</h3>
+        <p style="color: var(--muted); margin-bottom: 1.5rem;"><strong>Tareas para evaluar según prioridad/recursos</strong></p>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #fbbf24; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #fbbf24; font-size: 1.05rem;">🔧 Mantenimiento Técnico</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">Actualización de dependencias PHP/npm regularmente</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Refactoring de código legacy (si aplica)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Documentación de API y procesos</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Performance profiling y optimización continua</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Auditoría de seguridad trimestral</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #fbbf24; padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+          <h4 style="margin: 0 0 0.75rem; color: #fbbf24; font-size: 1.05rem;">📱 Experiencia del Producto</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">A/B testing framework para conversión</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Feedback de usuarios integrado</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Mejora de onboarding para nuevos vendedores</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Versión administrador mejorada (drag-drop más)
+            <li style="margin: 0.35rem 0; color: var(--text);">Temas personalizables por marca</li>
+          </ul>
+        </div>
+        
+        <div style="background: rgba(255,255,255,0.04); border-left: 3px solid #fbbf24; padding: 1rem; border-radius: 8px;">
+          <h4 style="margin: 0 0 0.75rem; color: #fbbf24; font-size: 1.05rem;">⚖️ Compliance & Legal</h4>
+          <ul style="margin: 0; margin-left: 1.5rem;">
+            <li style="margin: 0.35rem 0; color: var(--text);">GDPR compliance (privacy policy, data export)</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Terms & conditions generador</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Cookie consent banner</li>
+            <li style="margin: 0.35rem 0; color: var(--text);">Audit trail para transacciones</li>
+          </ul>
+        </div>
+      </div>
+      
+      <hr>
       
       <p style="text-align: center; color: var(--muted); font-size: 0.85rem; margin-top: 3rem;">
         Manual Técnico – Sistema E-commerce Mostrador · Versión 1.0 · Diciembre 2025

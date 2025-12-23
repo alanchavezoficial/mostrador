@@ -182,8 +182,10 @@ function hasAnyRole(array $roles, array $user): bool {
  */
 function requirePermission(string $permission, array $user, mixed $resourceOwnerId = null): void {
     if (!hasPermission($permission, $user, $resourceOwnerId)) {
+        error_log('[permissions] Permission denied: ' . $permission . ' for user ' . json_encode($user));
         http_response_code(403);
-        die("❌ Acceso denegado. No tienes permiso para esta acción.");
+        echo '403 - Acceso denegado.';
+        exit;
     }
 }
 
@@ -196,8 +198,10 @@ function requirePermission(string $permission, array $user, mixed $resourceOwner
  */
 function requireRole(string $role, array $user): void {
     if (!hasRole($role, $user)) {
+        error_log('[permissions] Role required: ' . $role . ' for user ' . json_encode($user));
         http_response_code(403);
-        die("❌ Acceso denegado. Esta sección es solo para " . htmlspecialchars($role) . ".");
+        echo '403 - Acceso denegado.';
+        exit;
     }
 }
 
@@ -210,7 +214,9 @@ function requireRole(string $role, array $user): void {
  */
 function requireAnyRole(array $roles, array $user): void {
     if (!hasAnyRole($roles, $user)) {
+        error_log('[permissions] Role(s) required: ' . implode(', ', $roles) . ' for user ' . json_encode($user));
         http_response_code(403);
-        die("❌ Acceso denegado. Esta sección requiere uno de los siguientes roles: " . implode(', ', $roles));
+        echo '403 - Acceso denegado.';
+        exit;
     }
 }

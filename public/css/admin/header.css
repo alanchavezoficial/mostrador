@@ -1,44 +1,115 @@
+/* ================================================
+   ADMIN HEADER - UNIFIED & RESPONSIVE
+   ================================================ */
+
 :root {
-    --admin-header-height: 72px;
+    --admin-header-height: 56px;
     --admin-gap: 0.5rem;
     --admin-radius: 12px;
-    --admin-border: rgba(0, 0, 0, 0.08);
+    --admin-border: color-mix(in srgb, var(--color_header), transparent 80%);
 }
 
-body > header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    min-height: var(--admin-header-height);
-    background: var(--color_header);
-    border-bottom: 1px solid var(--admin-border);
-    box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+    justify-content: space-between;
+    gap: 1.5em;
+    flex-wrap: wrap;
 }
 
-body > header h1 {
+header nav {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2em;
+    box-shadow: var(--shadow-soft);
+    width: 100vw;
+    left: 0;
+}
+
+
+body>header h1 {
     margin: 0;
     font-size: 1.1rem;
     color: var(--color_texto);
     letter-spacing: -0.01em;
+    grid-column: 1;
+    grid-row: 1;
+    min-width: 0;
 }
 
-body > header nav {
+
+body>header .menu-toggle {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+/* --- Responsive Header Admin (unificado) --- */
+@media screen and (max-width: 1024px) {
+    body > header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 0.5rem 0.75rem;
+    }
+}
+
+@media (max-width: 860px) {
+    body > header .menu-toggle {
+        display: inline-flex !important;
+    }
+    body > header nav {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        flex-direction: row;
+        justify-content: space-around;
+        gap: 0.5em;
+        align-items: flex-start;
+        margin-top: 0.5em;
+        width: 100%;
+    }
+    .only-mobile { display: inline-flex !important; }
+}
+
+@media screen and (max-width: 640px) {
+    body > header h1 {
+        width: 100%;
+        font-size: 1rem;
+        text-align: left;
+        margin-bottom: 0.5em;
+    }
+    body > header nav {
+        width: 100%;
+        flex-direction: row;
+        justify-content: space-around;
+        align-items: center;
+        gap: 0.4em;
+    }
+    body > header nav a {
+        width: auto;
+        min-width: 90px;
+        justify-content: center;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
+    }
+
+
+body>header nav {
     display: flex;
     align-items: center;
     gap: var(--admin-gap);
-    margin-left: auto;
+    margin-left: 0;
+    flex-wrap: wrap;
+    overflow-x: auto;
 }
 
-body > header nav a {
+body>header nav a {
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: 0.35rem;
-    padding: 0.55rem 0.9rem;
+    padding: 0.4rem 0.7rem;
+    /* más compacto */
     color: var(--color_texto);
     text-decoration: none;
     border-radius: var(--admin-radius);
@@ -47,19 +118,24 @@ body > header nav a {
     transition: background 160ms ease, color 160ms ease, border-color 160ms ease, transform 140ms ease;
 }
 
-body > header nav a:hover {
+/* Eliminar márgenes por defecto del <p> dentro de los enlaces */
+body>header nav a p {
+    margin: 0;
+}
+
+body>header nav a:hover {
     background: color-mix(in hsl, var(--color_header), hsl(0 0% 100% / 10%));
     border-color: color-mix(in hsl, var(--color_header), hsl(0 0% 0% / 12%));
     transform: translateY(-1px);
 }
 
-body > header nav a[aria-current="page"] {
+body>header nav a[aria-current="page"] {
     background: color-mix(in hsl, var(--color_boton), hsl(0 0% 100% / 15%));
     color: var(--color_texto_boton);
 }
 
 /* Botón hamburguesa compartido con el menú lateral */
-body > header .menu-toggle {
+body>header .menu-toggle {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -75,39 +151,88 @@ body > header .menu-toggle {
     transition: background 150ms ease, border-color 150ms ease, transform 140ms ease;
 }
 
-body > header .menu-toggle:hover {
+body>header .menu-toggle:hover {
     background: color-mix(in hsl, var(--color_header), hsl(0 0% 100% / 14%));
     border-color: color-mix(in hsl, var(--color_header), hsl(0 0% 0% / 12%));
 }
 
-body > header .menu-toggle:active {
+body>header .menu-toggle:active {
     transform: scale(0.98);
 }
 
 @media screen and (max-width: 1024px) {
-    body > header {
-        flex-wrap: wrap;
-        gap: 0.6rem;
+    body>header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 0.5rem 0.75rem;
     }
 
-    body > header nav {
+    body>header nav {
         width: 100%;
-        justify-content: flex-start;
+        flex-direction: row;
+        justify-content: space-around;
+        overflow-x: auto;
         flex-wrap: wrap;
     }
 
-    body > header nav a {
-        flex: 1 1 calc(50% - 0.6rem);
-        justify-content: center;
+    body>header nav a {
+        flex: 0 0 auto;
+    }
+
+    body>header .menu-toggle {
+        display: inline-flex !important;
+    }
+}
+
+@media (max-width: 860px) {
+    body>header {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        grid-template-rows: auto auto;
+        gap: 0.5rem 0.75rem;
+    }
+
+    body>header nav {
+        grid-column: 1 / -1;
+        grid-row: 2;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-around;
+        gap: 0.5em;
+        align-items: flex-start;
+        margin-top: 0.5em;
+        width: 100%;
+    }
+
+    body>header .menu-toggle {
+        display: inline-flex !important;
+    }
+
+    .only-mobile {
+        display: inline-flex !important;
     }
 }
 
 @media screen and (max-width: 640px) {
-    body > header nav a {
-        flex: 1 1 100%;
+    body>header h1 {
+        width: 100%;
+        font-size: 1rem;
+        text-align: left;
+        margin-bottom: 0.5em;
     }
 
-    body > header h1 {
+    body>header nav {
         width: 100%;
+        align-items: center;
+        gap: 0.4em;
+    }
+
+    body>header nav a {
+        width: auto;
+        min-width: 90px;
+        justify-content: center;
+        padding-left: 0.5em;
+        padding-right: 0.5em;
     }
 }

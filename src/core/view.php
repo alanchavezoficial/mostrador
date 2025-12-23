@@ -31,8 +31,10 @@ class View
 
         // Verifica existencia de la vista antes de cargar
         if (!file_exists($viewPath)) {
+            error_log('[View::render] Vista no encontrada: ' . $viewPath);
             http_response_code(404);
-            die("Vista '$vista' no encontrada.");
+            echo '404 - Página no encontrada.';
+            exit;
         }
 
         require $basePath . $header;
@@ -51,8 +53,10 @@ class View
     $viewPath = "$basePath/admin/$vista.php";
 
     if (!file_exists($viewPath)) {
+        error_log('[View::renderPartial] Vista parcial no encontrada: ' . $viewPath);
         http_response_code(404);
-        die("Vista '$vista' no encontrada.");
+        echo '404 - Fragmento no encontrado.';
+        exit;
     }
 
     require $viewPath;

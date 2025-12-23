@@ -8,7 +8,7 @@
     background: var(--color_fondo);
     padding: 2em;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-soft);
     width: 100%;
     max-width: 500px;
     margin: 2em auto;
@@ -44,10 +44,11 @@ label {
     color: var(--color_texto);
 }
 
+
 .form-label.required::after,
 label.required::after {
     content: ' *';
-    color: #dc2626;
+    color: var(--tone-danger);
 }
 
 /* Inputs Base */
@@ -93,7 +94,7 @@ select:focus,
 .form-control:focus {
     outline: none;
     border-color: var(--color_primario);
-    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color_primario), transparent 80%);
 }
 
 /* Textarea */
@@ -113,29 +114,30 @@ select {
 }
 
 /* Checkboxes and Radios */
-input[type="checkbox"],
-input[type="radio"] {
-    width: auto;
-    margin-right: 0.5em;
-    cursor: pointer;
-}
 
-.form-check {
-    display: flex;
-    align-items: center;
-    margin-bottom: 1em;
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+input[type="url"],
+input[type="date"],
+input[type="time"],
+input[type="search"],
+input[type="file"],
+select,
+textarea {
+    width: 100%;
+    padding: 0.75em 1em;
+    border: 1px solid var(--border-muted);
+    border-radius: 8px;
+    background: var(--color_fondo);
+    color: var(--color_texto);
+    font-size: 1em;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    box-shadow: none;
 }
-
-.form-check label {
-    margin-bottom: 0;
-    cursor: pointer;
-    font-weight: 400;
-}
-
-/* Input Groups */
-.input-group {
-    display: flex;
-    gap: 0.5em;
 }
 
 .input-group .form-control {
@@ -168,7 +170,7 @@ input[type="radio"] {
 
 .newsletter-input {
     flex: 1;
-    background: white;
+    background: var(--color_fondo);
 }
 
 /* Form Messages */
@@ -181,28 +183,28 @@ input[type="radio"] {
 }
 
 .form-message.success {
-    background: #d1fae5;
-    color: #065f46;
-    border: 1px solid #6ee7b7;
+    background: var(--bg-success);
+    color: var(--tone-success);
+    border: 1px solid var(--border-success);
 }
 
 .form-message.error,
 .login-box .error {
-    background: #fee2e2;
-    color: #dc2626;
-    border: 1px solid #fca5a5;
+    background: var(--bg-danger);
+    color: var(--tone-danger);
+    border: 1px solid var(--border-danger);
 }
 
 .form-message.warning {
-    background: #fef3c7;
-    color: #92400e;
-    border: 1px solid #fcd34d;
+    background: var(--bg-warning);
+    color: var(--tone-warning);
+    border: 1px solid var(--border-warning);
 }
 
 .form-message.info {
-    background: #dbeafe;
-    color: #1e40af;
-    border: 1px solid #93c5fd;
+    background: var(--bg-info);
+    color: var(--tone-info);
+    border: 1px solid var(--border-info);
 }
 
 /* Input States */
@@ -212,21 +214,21 @@ textarea:disabled,
 select:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-    background: #f3f4f6;
+    background: var(--bg-muted);
 }
 
 .form-control.is-invalid,
 input.is-invalid,
 textarea.is-invalid,
 select.is-invalid {
-    border-color: #dc2626;
+    border-color: var(--tone-danger);
 }
 
 .form-control.is-valid,
 input.is-valid,
 textarea.is-valid,
 select.is-valid {
-    border-color: #10b981;
+    border-color: var(--tone-success);
 }
 
 /* Help Text */
@@ -235,7 +237,7 @@ select.is-valid {
     display: block;
     margin-top: 0.5em;
     font-size: 0.85em;
-    color: #6b7280;
+    color: var(--tone-muted);
 }
 
 /* Input Icons */

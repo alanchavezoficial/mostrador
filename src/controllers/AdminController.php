@@ -49,23 +49,42 @@ class AdminController
         $topCountries = [];
         $topWishlisted = [];
         $topProductBuyers = [];
+        // --- Datos agregados para todos los gráficos ---
+        $pageviews7d = [];
+        $pageviews30d = [];
+        $avgTime7d = [];
+        $avgTime30d = [];
+        $deviceBreakdown = [];
+        $topRoutes = [];
         try {
             $analyticsTotal = $this->conn->query("SELECT COUNT(*) FROM analytics_events")->fetch_row()[0] ?? 0;
             $analyticsUnique = $this->conn->query("SELECT COUNT(DISTINCT session_id) FROM analytics_events WHERE session_id IS NOT NULL")->fetch_row()[0] ?? 0;
             $analyticsAvgTime = $this->conn->query("SELECT AVG(JSON_EXTRACT(metadata,'$.seconds') + 0) FROM analytics_events WHERE event_type = 'time_on_page'")->fetch_row()[0] ?? 0;
-        } catch (Throwable $e) {
-            // Table may not exist yet; ignore
-        }
 
-        try {
+            // Pageviews últimos 7 días
+            $res = $this->conn->query("SELECT DATE(created_at) as d, COUNT(*) as cnt FROM analytics_events WHERE event_type = 'pageview' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) GROUP BY d ORDER BY d ASC");
+            while ($row = $res->fetch_assoc()) { $pageviews7d[] = $row; }
+            // Pageviews últimos 30 días
+            $res = $this->conn->query("SELECT DATE(created_at) as d, COUNT(*) as cnt FROM analytics_events WHERE event_type = 'pageview' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) GROUP BY d ORDER BY d ASC");
+            while ($row = $res->fetch_assoc()) { $pageviews30d[] = $row; }
+            // Avg time últimos 7 días
+            $res = $this->conn->query("SELECT DATE(created_at) as d, AVG(JSON_EXTRACT(metadata,'$.seconds') + 0) as avg_sec FROM analytics_events WHERE event_type = 'time_on_page' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 7 DAY) GROUP BY d ORDER BY d ASC");
+            while ($row = $res->fetch_assoc()) { $avgTime7d[] = $row; }
+            // Avg time últimos 30 días
+            $res = $this->conn->query("SELECT DATE(created_at) as d, AVG(JSON_EXTRACT(metadata,'$.seconds') + 0) as avg_sec FROM analytics_events WHERE event_type = 'time_on_page' AND created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY) GROUP BY d ORDER BY d ASC");
+            while ($row = $res->fetch_assoc()) { $avgTime30d[] = $row; }
+            // Device breakdown
+            $res = $this->conn->query("SELECT CASE WHEN (JSON_UNQUOTE(JSON_EXTRACT(metadata,'$.screen.w'))+0) < 768 THEN 'Mobile' WHEN (JSON_UNQUOTE(JSON_EXTRACT(metadata,'$.screen.w'))+0) < 1024 THEN 'Tablet' ELSE 'Desktop' END AS device, COUNT(*) AS cnt FROM analytics_events GROUP BY device ORDER BY cnt DESC");
+            while ($row = $res->fetch_assoc()) { $deviceBreakdown[] = $row; }
+            // Top routes
+            $res = $this->conn->query("SELECT path, COUNT(*) AS cnt FROM analytics_events WHERE path IS NOT NULL AND path != '' GROUP BY path ORDER BY cnt DESC LIMIT 5");
+            while ($row = $res->fetch_assoc()) { $topRoutes[] = $row; }
+
+            // --- Ya existentes ---
             $res = $this->conn->query("SELECT referrer, COUNT(*) AS cnt FROM analytics_events WHERE referrer IS NOT NULL GROUP BY referrer ORDER BY cnt DESC LIMIT 5");
-            while ($row = $res->fetch_assoc()) {
-                $topReferrers[] = $row;
-            }
+            while ($row = $res->fetch_assoc()) { $topReferrers[] = $row; }
             $res = $this->conn->query("SELECT COALESCE(NULLIF(element,''), JSON_UNQUOTE(JSON_EXTRACT(metadata,'$.element'))) AS element, COUNT(*) AS cnt FROM analytics_events WHERE event_type = 'click' GROUP BY COALESCE(NULLIF(element,''), JSON_UNQUOTE(JSON_EXTRACT(metadata,'$.element'))) ORDER BY cnt DESC LIMIT 5");
-            while ($row = $res->fetch_assoc()) {
-                $topClicks[] = $row;
-            }
+            while ($row = $res->fetch_assoc()) { $topClicks[] = $row; }
             $res = $this->conn->query("SELECT country, COUNT(*) AS cnt FROM analytics_events WHERE country IS NOT NULL AND country != '' GROUP BY country ORDER BY cnt DESC LIMIT 5");
             while ($row = $res->fetch_assoc()) { $topCountries[] = $row; }
             // Top wishlisted products (by distinct users)
@@ -96,7 +115,14 @@ class AdminController
             'top_clicks' => $topClicks,
             'top_countries' => $topCountries,
             'top_wishlisted' => $topWishlisted,
-            'top_product_buyers' => $topProductBuyers
+            'top_product_buyers' => $topProductBuyers,
+            // nuevos datos agregados
+            'pageviews7d' => $pageviews7d,
+            'pageviews30d' => $pageviews30d,
+            'avgTime7d' => $avgTime7d,
+            'avgTime30d' => $avgTime30d,
+            'deviceBreakdown' => $deviceBreakdown,
+            'topRoutes' => $topRoutes
         ], 'admin');
     }
 
@@ -161,6 +187,8 @@ class AdminController
     public function userCreate(): void
     {
         require_once __DIR__ . '/../core/auth.php'; 
+        require_once __DIR__ . '/../core/csrf.php';
+        csrf_require();
         try {
             $name     = trim($_POST['nombre'] ?? '');
             $email    = trim($_POST['email']  ?? '');
@@ -207,7 +235,13 @@ class AdminController
             header("Location: " . BASE_URL . "admin/usuarios?view=table&msg=created");
             exit;
         } catch (Throwable $e) {
-            echo "<pre>❌ Error al crear usuario: " . htmlspecialchars($e->getMessage()) . "</pre>";
+            error_log('[AdminController::userCreate] ' . $e->getMessage());
+            if (($_GET['ajax'] ?? '') === '1') {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Error al crear usuario']);
+                exit;
+            }
+            header("Location: " . BASE_URL . "admin/usuarios?view=register&msg=error");
             exit;
         }
     }
@@ -215,6 +249,8 @@ class AdminController
     public function userEdit(): void
     {
         require_once __DIR__ . '/../core/auth.php'; 
+        require_once __DIR__ . '/../core/csrf.php';
+        csrf_require();
         try {
             $id    = intval($_POST['id'] ?? 0);
             $name  = trim($_POST['nombre'] ?? '');
@@ -270,7 +306,13 @@ class AdminController
             header("Location: " . BASE_URL . "admin/usuarios?view=table&msg=edited");
             exit;
         } catch (Throwable $e) {
-            echo "<pre>❌ Error al editar usuario: " . htmlspecialchars($e->getMessage()) . "</pre>";
+            error_log('[AdminController::userEdit] ' . $e->getMessage());
+            if (($_GET['ajax'] ?? '') === '1') {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Error al editar usuario']);
+                exit;
+            }
+            header("Location: " . BASE_URL . "admin/usuarios?view=table&msg=error");
             exit;
         }
     }
@@ -280,8 +322,9 @@ class AdminController
         $id = $_GET['id'] ?? '';
 
         if (!$id || !is_numeric($id)) {
-            http_response_code(400);
-            die("ID de usuario no válido.");
+            error_log('[AdminController::userEditForm] ID de usuario no válido: ' . var_export($id, true));
+            header("Location: " . BASE_URL . "admin/usuarios?view=table&msg=error");
+            exit;
         }
 
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE id = ? LIMIT 1");
@@ -292,8 +335,9 @@ class AdminController
         $stmt->close();
 
         if (!$user) {
-            http_response_code(404);
-            die("Usuario no encontrado.");
+            error_log('[AdminController::userEditForm] Usuario no encontrado: ' . var_export($id, true));
+            header("Location: " . BASE_URL . "admin/usuarios?view=table&msg=error");
+            exit;
         }
 
         // Obtener roles disponibles de la BD (ENUM en tabla users)
@@ -315,6 +359,8 @@ class AdminController
     public function userDelete(): void
     {
         require_once __DIR__ . '/../core/auth.php'; 
+        require_once __DIR__ . '/../core/csrf.php';
+        csrf_require();
         try {
             $id = intval($_POST['id'] ?? 0);
             if ($id <= 0) {
@@ -341,7 +387,13 @@ class AdminController
             header("Location: " . BASE_URL . "admin/usuarios?msg=deleted");
             exit;
         } catch (Throwable $e) {
-            echo "<pre>❌ Error al eliminar usuario: " . htmlspecialchars($e->getMessage()) . "</pre>";
+            error_log('[AdminController::userDelete] ' . $e->getMessage());
+            if (($_GET['ajax'] ?? '') === '1') {
+                header('Content-Type: application/json');
+                echo json_encode(['error' => 'Error al eliminar usuario']);
+                exit;
+            }
+            header("Location: " . BASE_URL . "admin/usuarios?msg=error_delete");
             exit;
         }
     }
@@ -420,7 +472,8 @@ class AdminController
             header('Location: ' . BASE_URL . 'admin/perfil?updated=1');
             exit;
         } catch (Throwable $e) {
-            echo '<pre>❌ Error: ' . htmlspecialchars($e->getMessage()) . '</pre>';
+            error_log('[AdminController::profileUpdate] ' . $e->getMessage());
+            header('Location: ' . BASE_URL . 'admin/perfil?error=1');
             exit;
         }
     }

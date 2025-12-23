@@ -30,11 +30,17 @@ $requiredScripts =
         <?php while ($p = $products->fetch_assoc()): ?>
           <tr>
             <td class="text-center">
-              <?php if ($p['imagen']): ?>
+              <?php 
+                $imagen = $p['imagen'] ?? 'assets/default.png';
+                if (!empty($imagen)): 
+              ?>
                 <img
-                  src="<?= BASE_URL ?>uploads/<?= htmlspecialchars($p['imagen']) ?>"
+                  src="<?= BASE_URL ?>public/uploads/<?= htmlspecialchars($imagen) ?>"
                   class="table-thumb"
-                  alt="<?= htmlspecialchars($p['nombre']) ?>">
+                  alt="<?= htmlspecialchars($p['nombre']) ?>"
+                  onerror="this.src='<?= BASE_URL ?>public/uploads/assets/default.png'">
+              <?php else: ?>
+                <div class="table-thumb-placeholder">—</div>
               <?php endif; ?>
             </td>
             <td><?= htmlspecialchars($p['nombre']) ?></td>

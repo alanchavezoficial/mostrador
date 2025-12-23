@@ -1,3 +1,4 @@
+
 main.dashboard-layout {
   display: grid;
   grid-template-columns: 260px 1fr;
@@ -6,26 +7,28 @@ main.dashboard-layout {
   min-height: calc(100vh - var(--admin-header-height, 70px));
   margin: 0;
   box-sizing: border-box;
-  background-color: var(--color_fondo);
+  background: var(--color_fondo);
   color: var(--color_texto);
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
   overflow: hidden;
 }
 
+
 aside.menu {
   width: 260px;
   min-width: 220px;
-  background-color: var(--color_header);
+  background: var(--color_header);
   color: var(--color_texto);
-  border-right: 1px solid rgba(0,0,0,0.06);
+  border-right: 1px solid color-mix(in srgb, var(--color_header), transparent 80%);
   box-sizing: border-box;
 }
+
 
 section.content-area {
   display: flex;
   flex-direction: column;
   padding: 1rem 1.25rem;
-  background-color: var(--color_fondo);
+  background: var(--color_fondo);
   color: var(--color_texto);
   min-width: 0;
   overflow-x: hidden;
@@ -49,11 +52,12 @@ main.dashboard-layout > .main {
   margin-bottom: 1rem;
   max-width: 100%;
 }
+  
 .card {
   background: var(--color_card, #ffffff);
   border-radius: 10px;
   padding: 1rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+  box-shadow: var(--shadow-soft);
   min-height: 64px;
 }
 .card h2 { margin: 0 0 6px 0; font-size: 1rem; }
@@ -198,6 +202,30 @@ main.dashboard-layout > .main {
 .chart-card h3 { margin: 0 0 8px 0; font-size: 1rem; }
 
 .table { width: 100%; border-collapse: collapse; }
+
+/* ============================================
+   Dark theme adjustments
+   ============================================ */
+[data-theme="dark"] .card,
+[data-theme="dark"] .stat-card,
+[data-theme="dark"] .chart-card {
+  background: var(--color_card, #2a2020);
+  box-shadow: 0 1px 3px rgba(255,255,255,0.06);
+}
+
+[data-theme="dark"] .stat-item {
+  background: rgba(255, 255, 255, 0.04);
+}
+[data-theme="dark"] .stat-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+[data-theme="dark"] .analytics-controls .btn.btn-ghost {
+  border-color: rgba(255,255,255,0.12);
+}
+[data-theme="dark"] .analytics-controls .btn.btn-ghost:hover {
+  background: rgba(255,255,255,0.06);
+}
 .table th, .table td { border-bottom: 1px solid rgba(0,0,0,0.06); padding: 8px 10px; text-align: left; }
 .table tbody tr:hover { background: rgba(0,0,0,0.02); }
 .table th:first-child, .table td:first-child { width: 140px; max-width: 180px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

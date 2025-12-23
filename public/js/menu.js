@@ -64,6 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const openMenu = () => {
     if (!menu) return;
+    // Ensure collapsed state doesn't interfere on mobile
+    if (window.innerWidth <= 860 && menu.classList.contains('collapsed')) {
+      menu.dataset.wasCollapsed = 'true';
+      menu.classList.remove('collapsed');
+    }
     menu.classList.add('open');
     ensureBackdrop().classList.add('show');
     document.body.style.overflow = 'hidden';
@@ -80,6 +85,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.overflow = '';
     menuToggleBtn?.setAttribute('aria-expanded', 'false');
     menuToggleBtn?.focus();
+    // Restore collapsed state after closing on mobile
+    if (menu.dataset.wasCollapsed === 'true') {
+      delete menu.dataset.wasCollapsed;
+      menu.classList.add('collapsed');
+    }
   };
 
   // Toggle button
@@ -120,6 +130,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Close if window resized larger than mobile breakpoint
   window.addEventListener('resize', () => { if (window.innerWidth > 860 && menu && menu.classList.contains('open')) closeMenu(); });
+
+  // Keep collapse logic desktop-only: ensure mobile menu is fully expanded
+  const syncCollapseWithViewport = () => {
+    if (!menu) return;
+    if (window.innerWidth <= 860) {
+      // On mobile, never keep collapsed state to allow submenus
+      menu.classList.remove('collapsed');
+    } else {
+      // On desktop, apply persisted collapse state
+      const collapsedPersisted = localStorage.getItem('adminMenuCollapsed') === 'true';
+      applyCollapseState(collapsedPersisted);
+    }
+  };
+  // Initial sync and on resize
+  syncCollapseWithViewport();
+  window.addEventListener('resize', syncCollapseWithViewport);
 
   // Public header menu toggle for front-end nav
   const publicMenuToggleBtn = document.getElementById('public-menu-toggle');

@@ -1,11 +1,60 @@
-/* css/style.css - estilos generales */
+/* ================================================
+   ESTILOS GLOBALES Y TOKENS SEMÁNTICOS
+   Este archivo define:
+   - Reset básico del navegador
+   - Tokens semánticos de color (--tone-*, --bg-*, --border-*)
+   - Estilos base de elementos HTML
+   - Banner de cookies
+   ================================================ */
+
+/* Tokens semánticos derivados de los colores del tema */
+:root {
+    /* Tonos de color semánticos */
+    --tone-muted: color-mix(in srgb, var(--color_texto), var(--color_fondo) 45%);
+    --tone-danger: color-mix(in srgb, var(--color_acento), var(--color_primario) 22%);
+    --tone-success: color-mix(in srgb, var(--color_primario), var(--color_acento) 18%);
+    --tone-warning: color-mix(in srgb, var(--color_acento), var(--color_boton) 30%);
+    --tone-info: color-mix(in srgb, var(--color_primario), var(--color_acento) 10%);
+    
+    /* Fondos de estado */
+    --bg-success: color-mix(in srgb, var(--tone-success), white 82%);
+    --bg-danger: color-mix(in srgb, var(--tone-danger), white 82%);
+    --bg-warning: color-mix(in srgb, var(--tone-warning), white 82%);
+    --bg-info: color-mix(in srgb, var(--tone-info), white 82%);
+    --bg-muted: color-mix(in srgb, var(--color_fondo), var(--color_texto) 10%);
+    
+    /* Bordes de estado */
+    --border-success: color-mix(in srgb, var(--tone-success), var(--color_acento) 35%);
+    --border-danger: color-mix(in srgb, var(--tone-danger), var(--color_acento) 15%);
+    --border-warning: color-mix(in srgb, var(--tone-warning), var(--color_acento) 25%);
+    --border-info: color-mix(in srgb, var(--tone-info), var(--color_acento) 20%);
+    --border-muted: color-mix(in srgb, var(--color_acento), transparent 60%);
+    
+    /* Sombra suave adaptable al tema */
+    --shadow-soft: 0 4px 20px color-mix(in srgb, var(--color_texto), transparent 92%);
+}
+
+/* ================================================
+   RESET Y ESTILOS BASE
+   ================================================ */
 
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+
+/* Enlaces sin decoración ni color azul por defecto */
+a {
     text-decoration: none;
-    color: inherit;
+    color: var(--color_texto);
+}
+
+a:hover,
+a:focus,
+a:active,
+a:visited {
+    text-decoration: none;
 }
 
 body {
@@ -14,26 +63,20 @@ body {
     padding: 0;
     background-color: var(--color_fondo);
     color: var(--color_texto);
+    width: 100dvw;
+    overflow-x: hidden;
 }
 
-header,
-footer {
-    background-color: var(--color_header);
-    text-align: center;
-    height: 10dvh;
-}
-
+/* Layout básico - header y footer gestionados por header.css */
 main {
     margin: 0 auto;
     min-height: 80dvh;
 }
 
-footer p {
-    margin: 0;
-    font-size: 0.9em;
-}
+/* ================================================
+   BANNER DE COOKIES
+   ================================================ */
 
-/* Cookie consent banner */
 #cookie-banner-analytics {
     position: fixed;
     left: 0;
@@ -43,23 +86,63 @@ footer p {
     justify-content: center;
     z-index: 9999;
 }
+
 #cookie-banner-analytics .cookie-inner {
     max-width: 980px;
-    background: rgba(0,0,0,0.85);
-    color: white;
+    background: color-mix(in srgb, var(--color_header), transparent 15%);
+    color: var(--color_texto);
     padding: 12px 16px;
     border-radius: 6px;
     display: flex;
     gap: 12px;
     align-items: center;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-muted);
+    backdrop-filter: blur(8px);
 }
-#cookie-banner-analytics p { margin: 0; font-size: .9em; }
-#cookie-banner-analytics .cookie-actions { display: flex; gap: 8px; }
-#cookie-banner-analytics button { padding: 8px 12px; border: none; cursor: pointer; border-radius: 4px; }
-#cookie-banner-analytics button#cookie-accept { background-color: var(--color_primary, #2d9cdb); color: white; }
-#cookie-banner-analytics button#cookie-decline { background-color: #e0e0e0; }
 
-#cookie-settings-btn { position: fixed; right: 1rem; bottom: 1rem; z-index: 9998; padding: 6px 10px; border-radius: 6px; border: none; background: rgba(0,0,0,0.7); color: white; }
+#cookie-banner-analytics p { 
+    margin: 0; 
+    font-size: 0.9em; 
+}
+
+#cookie-banner-analytics .cookie-actions { 
+    display: flex; 
+    gap: 8px; 
+}
+
+#cookie-banner-analytics button { 
+    padding: 8px 12px; 
+    border: none; 
+    cursor: pointer; 
+    border-radius: 4px;
+    font-weight: 600;
+    transition: opacity 0.2s ease;
+}
+
+#cookie-banner-analytics button:hover {
+    opacity: 0.9;
+}
+
+#cookie-banner-analytics button#cookie-accept { 
+    background-color: var(--color_boton); 
+    color: var(--color_texto_boton, white); 
+}
+
+#cookie-banner-analytics button#cookie-decline { 
+    background-color: var(--bg-muted); 
+    color: var(--color_texto); 
+}
+
+#cookie-settings-btn {
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-muted);
+    background: color-mix(in srgb, var(--color_header), transparent 30%);
+    color: var(--color_texto);
+    box-shadow: var(--shadow-soft);
+    cursor: pointer;
+}
 
 @media (max-width: 520px) {
   #cookie-banner-analytics .cookie-inner { flex-direction: column; align-items: flex-start; gap: 8px; }

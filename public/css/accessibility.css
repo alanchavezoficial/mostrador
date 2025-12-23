@@ -1,0 +1,484 @@
+/**
+ * Accessibility Styles - WCAG 2.1 AA
+ * Estilos CSS para complementar mejoras de accesibilidad
+ */
+
+/* ============================================
+   SKIP LINKS
+   ============================================ */
+
+.skip-links {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    z-index: 10000;
+}
+
+
+/* Skip link uses theme variables for accessibility contrast */
+.skip-link {
+    position: absolute;
+    top: -100px;
+    left: 0;
+    background: var(--color_primario, #000);
+    color: var(--color_fondo, #fff);
+    padding: 0.75rem 1.5rem;
+    text-decoration: none;
+    font-weight: bold;
+    border-radius: 0 0 4px 0;
+    z-index: 10001;
+    transition: background 0.2s, color 0.2s;
+}
+
+.skip-link:focus {
+    top: 0;
+    outline: 3px solid var(--color_acento, #4285f4);
+    outline-offset: 2px;
+}
+
+/* ============================================
+   FOCUS INDICATORS
+   ============================================ */
+
+/* Focus visible mejorado */
+*:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+/* Solo mostrar outline cuando se navega con teclado */
+
+.keyboard-nav *:focus {
+    outline: 2px solid var(--color_primario, #4285f4);
+    outline-offset: 2px;
+}
+
+.keyboard-nav a:focus,
+.keyboard-nav button:focus,
+.keyboard-nav input:focus,
+.keyboard-nav select:focus,
+.keyboard-nav textarea:focus {
+    outline: 3px solid var(--color_acento, #4285f4);
+    outline-offset: 3px;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color_acento, #4285f4), transparent 80%);
+}
+
+/* Focus en botones */
+.keyboard-nav button:focus,
+.keyboard-nav .btn:focus {
+    position: relative;
+}
+
+.keyboard-nav button:focus::after,
+.keyboard-nav .btn:focus::after {
+    content: '';
+    position: absolute;
+    top: -4px;
+    left: -4px;
+    right: -4px;
+    bottom: -4px;
+    border: 2px solid var(--color-primario, #4285f4);
+    border-radius: inherit;
+    pointer-events: none;
+}
+
+/* ============================================
+   CONTRASTE DE COLOR - WCAG AA
+   ============================================ */
+
+/* Asegurar contraste mínimo de 4.5:1 para texto normal */
+/* y 3:1 para texto grande (18pt+ o 14pt+ bold) */
+
+/* Texto sobre fondos claros */
+.text-on-light {
+    color: #1a1a1a;
+}
+
+/* Texto sobre fondos oscuros */
+.text-on-dark {
+    color: #ffffff;
+}
+
+/* Enlaces con contraste suficiente - usan variables de tema */
+a {
+    color: var(--color_texto);
+    text-decoration: none;
+}
+
+a:hover,
+a:focus {
+    color: var(--color_texto);
+    text-decoration: none;
+}
+
+[data-theme="dark"] a,
+.dark-mode a {
+    color: var(--color_texto);
+}
+
+/* ============================================
+   TAMAÑOS DE TEXTO Y ESPACIADO
+   ============================================ */
+
+/* Tamaño mínimo recomendado: 16px */
+body {
+    font-size: 16px;
+    line-height: 1.5; /* WCAG recomienda 1.5 mínimo */
+}
+
+/* Párrafos con buen espaciado */
+p {
+    margin-bottom: 1em;
+    line-height: 1.6;
+}
+
+/* Espaciado entre letras y palabras */
+.readable-text {
+    letter-spacing: 0.05em;
+    word-spacing: 0.1em;
+}
+
+/* ============================================
+   ÁREAS DE TOQUE (TOUCH TARGETS)
+   ============================================ */
+
+/* WCAG 2.1: Mínimo 44x44 pixels */
+button,
+a,
+input[type="button"],
+input[type="submit"],
+input[type="checkbox"],
+input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+}
+
+/* Aumentar área de toque para checkboxes y radios */
+input[type="checkbox"],
+input[type="radio"] {
+    width: 24px;
+    height: 24px;
+    margin: 10px; /* Para alcanzar 44x44px total */
+}
+
+/* Labels clickeables */
+label {
+    cursor: pointer;
+    display: inline-block;
+    padding: 4px;
+}
+
+/* ============================================
+   ESTADOS DE FORMULARIO
+   ============================================ */
+
+/* Estado de error */
+.error,
+.invalid,
+[aria-invalid="true"] {
+    border-color: #d32f2f !important;
+    border-width: 2px !important;
+}
+
+.error-message,
+.invalid-feedback {
+    color: #d32f2f;
+    font-weight: 500;
+    margin-top: 0.25rem;
+    font-size: 0.875rem;
+}
+
+/* Icono de error */
+[aria-invalid="true"] {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23d32f2f'%3E%3Ccircle cx='6' cy='6' r='5'/%3E%3Cpath fill='%23fff' d='M5.5 3h1v4h-1z'/%3E%3Ccircle fill='%23fff' cx='6' cy='8.5' r='0.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 36px;
+}
+
+/* Estado de éxito */
+.success,
+.valid,
+[aria-invalid="false"] {
+    border-color: #388e3c !important;
+}
+
+/* Campo requerido */
+[required] label::after,
+[aria-required="true"] + label::after {
+    content: ' *';
+    color: #d32f2f;
+    font-weight: bold;
+}
+
+/* ============================================
+   TABLAS ACCESIBLES
+   ============================================ */
+
+/* Headers de tabla con variables de tema */
+th {
+    font-weight: 600;
+    text-align: left;
+    background-color: var(--color_header);
+    color: var(--color_titulo);
+    border-bottom: 2px solid var(--border-muted);
+}
+
+[data-theme="dark"] th,
+.dark-mode th {
+    background-color: var(--color_header);
+    border-bottom-color: var(--border-muted);
+    color: var(--color_titulo);
+}
+
+/* Filas alternadas para mejor lectura */
+tbody tr:nth-child(even) {
+    background-color: color-mix(in srgb, var(--color_card), transparent 50%);
+
+}
+
+[data-theme="dark"] tbody tr:nth-child(even),
+.dark-mode tbody tr:nth-child(even) {
+    background-color: #1f1f1f;
+}
+
+/* ============================================
+   CONTENIDO OCULTO ACCESIBLE
+   ============================================ */
+
+/* Ocultar visualmente pero mantener para lectores de pantalla */
+.sr-only,
+.visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Mostrar cuando tiene foco */
+.sr-only-focusable:focus,
+.visually-hidden-focusable:focus {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip: auto;
+    white-space: normal;
+}
+
+/* ============================================
+   IMÁGENES Y MULTIMEDIA
+   ============================================ */
+
+/* Imágenes decorativas */
+img[role="presentation"],
+img[alt=""] {
+    user-select: none;
+}
+
+/* Videos y audio con controles visibles */
+video,
+audio {
+    max-width: 100%;
+}
+
+video:focus,
+audio:focus {
+    outline: 3px solid var(--color-primario, #4285f4);
+    outline-offset: 4px;
+}
+
+/* ============================================
+   ANIMACIONES Y MOVIMIENTO
+   ============================================ */
+
+/* Respetar preferencia de movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ============================================
+   ALTO CONTRASTE (Windows)
+   ============================================ */
+
+@media (prefers-contrast: high) {
+    * {
+        border-color: currentColor !important;
+    }
+    
+    button,
+    .btn {
+        border: 2px solid currentColor !important;
+    }
+}
+
+/* ============================================
+   MODO OSCURO (Sistema)
+   ============================================ */
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+        color-scheme: dark;
+    }
+}
+
+/* ============================================
+   TOOLTIPS ACCESIBLES
+   ============================================ */
+
+[role="tooltip"] {
+    background: #333;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    max-width: 250px;
+    z-index: 1000;
+}
+
+/* ============================================
+   LISTAS Y NAVEGACIÓN
+   ============================================ */
+
+/* Lista de navegación accesible */
+nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+nav a {
+    display: block;
+    padding: 0.75rem 1rem;
+    text-decoration: none;
+}
+
+nav a:hover,
+nav a:focus {
+    background-color: rgba(0, 0, 0, 0.05);
+    text-decoration: underline;
+}
+
+/* Indicador de página actual */
+nav a[aria-current="page"] {
+    font-weight: bold;
+    background-color: rgba(0, 0, 0, 0.1);
+    border-left: 4px solid var(--color-primario, #4285f4);
+}
+
+/* ============================================
+   MODALES Y DIÁLOGOS
+   ============================================ */
+
+[role="dialog"],
+[role="alertdialog"] {
+    position: fixed;
+    z-index: 1000;
+    background: white;
+    border: 2px solid #333;
+    border-radius: 8px;
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+    padding: 2rem;
+}
+
+[data-theme="dark"] [role="dialog"],
+.dark-mode [role="dialog"] {
+    background: #1a1a1a;
+    border-color: #666;
+}
+
+/* Overlay del modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+}
+
+/* ============================================
+   BREADCRUMBS
+   ============================================ */
+
+nav[aria-label="breadcrumb"] ol {
+    list-style: none;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+nav[aria-label="breadcrumb"] li:not(:last-child)::after {
+    content: '/';
+    margin-left: 0.5rem;
+    color: #666;
+}
+
+/* ============================================
+   PROGRESS INDICATORS
+   ============================================ */
+
+[role="progressbar"] {
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+    height: 8px;
+}
+
+[role="progressbar"]::before {
+    content: '';
+    display: block;
+    height: 100%;
+    background: var(--color-primario, #4285f4);
+    width: var(--progress, 0%);
+    transition: width 0.3s ease;
+}
+
+/* ============================================
+   ALERTAS Y NOTIFICACIONES
+   ============================================ */
+
+[role="alert"],
+[role="status"] {
+    padding: 1rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    border-left: 4px solid;
+}
+
+[role="alert"] {
+    background: #fff3cd;
+    border-color: #ffc107;
+    color: #856404;
+}
+
+.alert-error {
+    background: #f8d7da;
+    border-color: #d32f2f;
+    color: #721c24;
+}
+
+.alert-success {
+    background: #d4edda;
+    border-color: #388e3c;
+    color: #155724;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    border-color: #0288d1;
+    color: #0c5460;
+}
